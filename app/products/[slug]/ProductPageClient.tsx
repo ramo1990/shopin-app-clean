@@ -18,23 +18,35 @@ export default function ProductPageClient({ slug }: ProductPageClientProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // user connecter ou pas, il peut acceder aux details de produits
   useEffect(() => {
     const loadData = async () => {
-      // const token = await refreshTokenIfNeeded()
-      // if (!token) {
-      //   console.warn('Token JWT manquant : utilisateur non connecté')
-      // return
-      // }
       setLoading(true)
       setError(null)
       try{
+        const token = await refreshTokenIfNeeded()
+        if (token) {
+          console.log('Utilisateur connecté avec token')
+        } else {
+          console.log('Utilisateur non connecté')
+        }
+
         const res = await axiosInstance.get(`/products/${slug}/`)
-      const prod = res.data
-      setProduct(prod)
+        const prod = res.data
+        setProduct(prod)
+
+        console.log("Tags du produit :", prod.tags)
 
       if (prod?.tags?.length) {
-        const similarRes = await axiosInstance.get(`/products/by-tag/${prod.tags[0].name}/`)
-        setSimilarProducts(similarRes.data.results || [])
+          const similarRes = await axiosInstance.get(`/products/by-tag/${prod.tags[0].slug}/`)
+          const allSimilar = similarRes.data || []
+          // setSimilarProducts(similarRes.data.results || [])
+
+          console.log("Produit actuel ID:", prod.id)
+
+          const filtered = (allSimilar as Product[]).filter((p: Product) => p.id !== prod.id)
+          
+          setSimilarProducts(filtered)
         }
       } catch (e) {
         setError("Impossible de charger le produit.")
