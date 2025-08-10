@@ -8,12 +8,7 @@ interface Props {
   }
 
 const PasswordField = ({password, setPassword, placeholder = 'Mot de passe'}: Props) => {
-//   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-
-//   const togglePasswordVisibility = () => {
-//     setShowPassword((prev) => !prev)
-//   }
 
   return (
     <div className="relative w-full">

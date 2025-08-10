@@ -12,14 +12,6 @@ const AddressFormContainer = () => {
     const [address, setAddress] = useState<AddressType | undefined>(undefined)
 
     useEffect(() => {
-        // const storedEmail = localStorage.getItem('userEmail')
-        // if (!storedEmail) {
-        //   console.warn("❌ Aucun email trouvé dans localStorage")
-        //   return
-        // }
-    
-        // setEmail(storedEmail)
-        // console.log("📧 Email récupéré :", storedEmail)
     
         // Appelle getAddress pour récupérer l'adresse
         const fetchAddress = async () => {
@@ -50,9 +42,13 @@ const AddressFormContainer = () => {
     
     console.log("🛠 Adresse passée à AddressForm:", address)
   return (
-    <Modal addressForm address={address}>
-        <AddressForm address={address ?? undefined} /*email={email}*/ />
-    </Modal>
+    <div className="w-full flex justify-center py-8">
+      <div className="w-full max-w-xl bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+        <Modal addressForm address={address}>
+            <AddressForm address={address ?? undefined} /*email={email}*/ />
+        </Modal>
+      </div>
+    </div>
   )
 }
 

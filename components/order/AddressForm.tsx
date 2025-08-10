@@ -78,8 +78,8 @@ const AddressForm = ({address}: { address: AddressType | undefined}) => {
     }
 
   return (
-    <form onSubmit={handleAddAddress} className='w-full mx-auto bg-white p-8 rounded-2xl space-y-6'>
-      <h2 className='text-2xl font-semibold text-gray-800 text-center mb-6'>Adresse de livraison</h2>
+    <form onSubmit={handleAddAddress} className='w-full max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-lg border border-gray-100 space-y-6'>
+      <h2 className='text-2xl font-semibold text-gray-900 text-center'>Adresse de livraison</h2>
 
       <div className='space-y-4'>
         <Input placeholder='Nom complet' 
@@ -88,36 +88,43 @@ const AddressForm = ({address}: { address: AddressType | undefined}) => {
             // onFocus={() => toast.info("Impossible de modifier votre nom")}
             style={{ pointerEvents: 'none' }}
             onChange={(e) => setFullName(e.target.value)}
-            className='w-full h-12 px-4 rounded-md border-gray-300 focus:border-black focus:ring-black/20 transition-all'/>
+            className='w-full h-12 px-4 rounded-lg border border-gray-300 bg-gray-50 
+                        focus:border-black focus:ring-2 focus:ring-black/10 transition-all'/>
 
         <Input placeholder='Adresse complète' 
             value={addressField}
             onChange={(e) => setAdressField(e.target.value)}
-            className='w-full h-12 px-4 rounded-md border-gray-300 focus:border-black focus:ring-black/20 transition-all' />
+            className='className="w-full h-12 px-4 rounded-lg border border-gray-300 
+                            focus:border-black focus:ring-2 focus:ring-black/10 transition-all' />
             
         <Input placeholder='Ville'
             value={city}
             onChange={(e) => setCity(e.target.value)} 
-            className='w-full h-12 px-4 rounded-md border-gray-300 focus:border-black focus:ring-black/20 transition-all' />
+            className='className="w-full h-12 px-4 rounded-lg border border-gray-300 
+                        focus:border-black focus:ring-2 focus:ring-black/10 transition-all' />
 
         <Input placeholder='Code postal' 
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
-            className='w-full h-12 px-4 rounded-md border-gray-300 focus:border-black focus:ring-black/20 transition-all' />
+            className='className="w-full h-12 px-4 rounded-lg border border-gray-300 
+                        focus:border-black focus:ring-2 focus:ring-black/10 transition-all' />
         
         <Input placeholder='Pays' 
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-            className='w-full h-12 px-4 rounded-md border-gray-300 focus:border-black focus:ring-black/20 transition-all' />
+            className='className="w-full h-12 px-4 rounded-lg border border-gray-300 
+                        focus:border-black focus:ring-2 focus:ring-black/10 transition-all' />
 
         <Input placeholder='Téléphone' 
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className='w-full h-12 px-4 rounded-md border-gray-300 focus:border-black focus:ring-black/20 transition-all' />
+            className='className="w-full h-12 px-4 rounded-lg border border-gray-300 
+                        focus:border-black focus:ring-2 focus:ring-black/10 transition-all' />
       </div>
 
       <button type="submit" disabled={disableButton() || btnLoader} 
-        className='w-full h-12 bg-black text-white cursor-pointer font-medium rounded-md hover:bg-gray-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed'>
+        className='w-full h-12 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-all duration-300
+                         disabled:opacity-50 disabled:cursor-not-allowed'>
         {btnLoader ? "Enregistrement en cours ..." : address?.city ? "Modifier adresse" : "Enregistrer"}
       </button>
     </form>

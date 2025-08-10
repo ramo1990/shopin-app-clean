@@ -17,11 +17,27 @@ const CartClient = () => {
     setHydrated(true)
   }, [])
 
-  if (!hydrated) return null // ou un loader
+  // Loader de skeleton avant hydratation
+  if (!hydrated){
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-pulse">
+        <div className="h-8 w-48 bg-gray-200 rounded mb-6"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+          <div className="h-48 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    )
+  }
 
+  // Panier vide
   if (cart.length === 0) {
     return (
-      <section className="flex items-center justify-center min-h-[60vh] bg-gray-50 px-4">
+      <section aria-label="Panier vide" className="flex items-center justify-center min-h-[60vh] bg-gray-50 px-4">
         <div className="max-w-xl text-center space-y-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Votre panier est vide</h1>
           <p className="text-gray-600">Vous n’avez ajouté aucun article pour le moment.</p>
@@ -34,26 +50,27 @@ const CartClient = () => {
     )
   }
 
+  // Panier avec produits
   return (
-    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+    <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
       <h1 className='text-3xl font-bold text-gray-900 mb-10 text-center lg:text-left'>Mon Panier</h1>
 
       <div className='flex flex-col lg:flex-row gap-10'>
         {/* Liste des articles */}
-        <div className='flex-1'>
-          <div className='max-h-[500px] overflow-y-auto space-y-6 pr-2 custom-scrollbar'>
+        <section className='flex-1' aria-label="Articles du panier">
+          <div className='overflow-y-auto space-y-6 pr-2 custom-scrollbar'>
             {cart.map(item => (
               <CartItem key={item.id} item={item} />
             ))}
           </div>
-        </div>
+        </section>
 
         {/* Résumé du panier */}
-        <aside className='w-full lg:w-[350px] bg-gray-50 border border-gray-200 rounded-lg p-6 shadow-sm'>
+        <aside className='w-full lg:w-[350px] bg-gray-50 border border-gray-300 rounded-lg p-6 shadow-md' aria-label="Résumé de la commande">
           <CartSummary />
         </aside>
       </div>
-    </div>
+    </main>
   )
 }
 
