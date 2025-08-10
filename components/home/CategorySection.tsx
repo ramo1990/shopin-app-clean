@@ -31,13 +31,18 @@ const CategorySection = () => {
   }, []);
 
   return (
-    <section className='w-full bg-gray-50 py-[120px] px-4 md:px-8 lg:px-16'>
+    <section className='w-full bg-gray-50 py-12 px-4 md:px-8 lg:px-16'>
       <div className='max-w-7xl mx-auto'>
-        <h2 className='text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-12 mt-12'>
+        {/* Titre section */}
+        <h2 className='text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-6'>
           Catégories de Produits
         </h2>
+        <p className="text-center text-gray-600 max-w-2xl mx-auto mb-12">
+          Découvrez notre large choix de catégories pour trouver rapidement ce dont vous avez besoin.
+        </p>
 
-        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 place-items-center mt-8 mb-8'>
+        {/* Grille catégories */}
+        <div className='flex flex-wrap justify-center gap-4 lg:gap-6 mt-8 mb-8'>
           {categories.map((category) => (
             <CategoryCard 
               key={category.id} 

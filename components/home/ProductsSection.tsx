@@ -29,15 +29,18 @@ const ProductsSection = ({title, products}: Props) => {
   };
 
   return (
-    <section id='product_section' className='w-full bg-white py-24 px-4 md:px-8 lg:px-16'>
+    <section id='product_section' className='w-full bg-white py-12 px-4 md:px-8 lg:px-16'>
       <div className="max-w-7xl mx-auto">
         {/* titre */}
-        <h2 className='text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-12'>
+        <h2 className='text-3xl md:text-4xl font-extrabold text-center text-gray-800 mb-6'>
             {title}
         </h2>
+        <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+          Découvrez nos produits sélectionnés avec soin pour répondre à tous vos besoins.
+        </p>
 
         {/* Produits */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 place-items-center'>
+        <div className='flex flex-wrap justify-center gap-6'>
         {paginatedProducts.length > 0 ? (
             paginatedProducts.map(product => (
               <Link key={product.id} href={`/products/${product.slug}`} passHref>
@@ -51,11 +54,11 @@ const ProductsSection = ({title, products}: Props) => {
 
        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center mt-10 space-x-2">
+          <div className="flex justify-center mt-10 flex-wrap gap-2">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded text-sm font-medium border ${
+              className={`px-4 py-2 rounded-md text-sm font-medium border transition ${
                 currentPage === 1 ? 'text-gray-400 border-gray-300 cursor-not-allowed' : 'text-gray-700 border-gray-400 hover:bg-gray-100'
               }`}>
               Précédent
@@ -65,7 +68,7 @@ const ProductsSection = ({title, products}: Props) => {
               <button
                 key={page}
                 onClick={() => handlePageChange(page)}
-                className={`px-4 py-2 rounded text-sm font-medium border ${
+                className={`px-4 py-2 rounded-md text-sm font-medium border transition ${
                   page === currentPage ? 'bg-gray-800 text-white border-gray-800' : 'text-gray-700 border-gray-400 hover:bg-gray-100'
                 }`}
               >
@@ -76,7 +79,7 @@ const ProductsSection = ({title, products}: Props) => {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded text-sm font-medium border ${
+                className={`px-4 py-2 rounded-md text-sm font-medium border transition ${
                   currentPage === totalPages ? 'text-gray-400 border-gray-300 cursor-not-allowed' : 'text-gray-700 border-gray-400 hover:bg-gray-100'
                 }`}
               >

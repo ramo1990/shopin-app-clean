@@ -2,7 +2,8 @@ import React from 'react';
 
 const Hero: React.FC = () => {
   return (
-    <section className="bg-gradient-to-r from-blue-50 to-white py-20 md:py-28 min-h-[70vh] flex items-center justify-center text-center md:text-left">
+    <section className="bg-gradient-to-r from-blue-50 to-white py-20 md:py-28 min-h-[70vh] flex items-center justify-center 
+                        text-center md:text-left">
 
       {/* Le conteneur principal doit correspondre à celui du NavBar */}
       <div className="max-w-3xl px-4 md:px-0">
@@ -24,7 +25,9 @@ const Hero: React.FC = () => {
         {/* Bouton principal */}
         <a
           href="#product_section"
-          className="inline-block bg-blue-600 text-white px-8 md:px-10 py-3 md:py-4 rounded-lg text-lg font-medium shadow-lg hover:shadow-xl hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300"
+          className="inline-block bg-blue-600 text-white px-8 md:px-10 py-3 md:py-4 rounded-lg text-lg font-medium shadow-lg
+                     hover:shadow-xl hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition 
+                     duration-300"
         >
           Explorer maintenant
         </a>
