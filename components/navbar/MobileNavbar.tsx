@@ -7,12 +7,17 @@ import { FaBars, FaCartShopping } from "react-icons/fa6"
 import { FaTimes } from "react-icons/fa"
 import clsx from "clsx"
 import { useAuth } from "@/context/AuthContext"
+import { useCartContext } from "@/context/CartContext"
 
 
 const MobileNavbar = () => {
-  const { user: loggedInUser } = useAuth()
+  const { user: loggedInUser, logout } = useAuth()
+  const { cart, clearCart } = useCartContext() // Récupère le panier dynamique
   const [isOpen, setIsOpen] = useState(false)
   const toggleMenu = () => setIsOpen(prev => !prev)
+
+  // Calcul du nombre total d'articles dans le panier
+  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0)
 
   return (
     <div className="relative z-50">
@@ -73,19 +78,34 @@ const MobileNavbar = () => {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/logout"
-                  onClick={toggleMenu}
+                {/* <Link
+                  href="/"
+                  onClick={async () => {
+                    await logout();
+                    toggleMenu;
+                    window.location.href = "/";
+                  }}
                   className="block px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors"
                 >
                   Logout
-                </Link>
+                </Link> */}
+                <button
+                  onClick={async () => {
+                    await logout();        // Déconnexion
+                    clearCart()
+                    toggleMenu();          // Ferme le menu mobile
+                    window.location.href = "/";  // Redirection manuelle
+                  }}
+                  className="block w-full text-left px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  Logout
+                </button>
               </li>
             </>
           ) : (
             <li>
               <Link
-                href="/login"
+                href="/signin"
                 onClick={toggleMenu}
                 className="block px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
@@ -108,9 +128,11 @@ const MobileNavbar = () => {
               <span>Panier</span>
               <div className="relative w-6 h-6 ml-2 flex items-center justify-center">
                 <FaCartShopping className="text-xl" />
+                {totalItems > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center leading-none">
-                  5
+                  {totalItems}
                 </span>
+                )}
               </div>
             </Link>
           </li>
