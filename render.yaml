@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: shopin-backend
+    env: python
+    plan: free
+    rootDir: backend # va dans backend/ pour builder l'app
+    buildCommand: | 
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn shopin.wsgi:application
+    build:
+      python_version: 3.9.1
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: shopin.settings
