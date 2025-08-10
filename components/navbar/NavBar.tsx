@@ -16,18 +16,19 @@ const NavBar = () => {
 
   return (
     <>
-    <nav className='bg-[whitesmoke] sticky top-0 z-20 w-full py-3 border-b border-gray-300 shadow-sm'>
-        <div className='w-full max-w-7xl mx-auto flex justify-between items-center padding-x px-4 md:px-6 lg:px-8'>
+    <nav className='bg-[whitesmoke] sticky top-0 z-20 w-full border-b border-gray-300 shadow-sm'>
+        <div className='w-full max-w-7xl mx-auto flex justify-between items-center px-4 md:px-6 lg:px-8 py-3'>
 
         {/* Logo */}
         <Link href="/">
-            <h1 className='text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600'> 
+            <h1 className='text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 
+                            to-pink-600 tracking-tight'> 
             Shopin </h1>
         </Link>
         
         {/* Desktop Search */}
-        <div className='hidden lg:flex justify-center flex-1 mx-4'>
-            <div className='mx-auto max-w-md'>
+        <div className='hidden lg:flex justify-center flex-1 mx-6'>
+            <div className='mx-auto max-w-md w-full'>
                 <SearchForm />
             </div>
         </div>
@@ -52,7 +53,7 @@ const NavBar = () => {
 
     {/* Mobile Search Form */}
     { showSearchForm && (
-        <div className='block md:block lg:hidden mt-2 px-4'>
+        <div className='px-4 py-2 bg-[whitesmoke] border-b border-gray-200'>
             <div className='flex justify-center'>
                 <div className='w-full max-w-md'>
                     <SearchForm />

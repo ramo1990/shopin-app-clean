@@ -50,14 +50,15 @@ const NavItems = ({ mobile = false, onLinkClick }: Props) => {
   const firstName = user?.first_name || 'Utilisateur'; // Prénom par défaut
 
   return (
-    <div className={cn("flex items-center gap-3", mobile ? "flex-col" : "flex-row")}>
+    <div className={cn("flex items-center", mobile ? "flex-col gap-4" : "flex-row gap-3")}>
       {user ? (
         // Si l’utilisateur est connecté
         <>
           {/* Image de profil (ou image par défaut) */}
-          <div className="w-10 h-10 rounded-full overflow-hidden border-[2px] border-gray-400 shadow-sm bg-gray-100">
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 
+                       shadow-sm bg-gray-100 transition hover:ring-2 hover:ring-blue-500">
             <Image
-              src={user?.image || "/casquette.jpeg"} // prends l'image utilisateur ou une valeur par défaut
+              src={user?.image || "/user_default.png"} // prends l'image utilisateur ou une valeur par défaut
               alt={`Photo de ${user?.first_name}`}
               className="w-full h-full object-cover"
               width={40}
@@ -68,7 +69,7 @@ const NavItems = ({ mobile = false, onLinkClick }: Props) => {
           {/* Lien vers le profil utilisateur */}
           <Link
             href="/profile"
-            className="text-base font-semibold text-gray-900 hover:text-gray-600 transition-colors duration-200"
+            className="text-sm sm:text-base font-semibold text-gray-900 hover:text-blue-600 transition-colors duration-200"
             onClick={handleClick}
           >
             Bonjour, {firstName}
@@ -78,7 +79,8 @@ const NavItems = ({ mobile = false, onLinkClick }: Props) => {
           <button
             title="Se déconnecter"
             onClick={handleLogout}
-            className="px-4 py-1 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700 transition duration-200"
+            className="px-4 py-1.5 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700 focus:ring-2 
+                      focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
           >
             Logout
           </button>
@@ -87,7 +89,8 @@ const NavItems = ({ mobile = false, onLinkClick }: Props) => {
         // Si l’utilisateur n’est pas connecté, lien vers la page de connexion
         <Link
           href="/signin"
-          className="px-4 py-1 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 transition duration-200"
+          className="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 focus:ring-2 
+                    focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
           onClick={handleClick}
         >
           Login
@@ -95,10 +98,12 @@ const NavItems = ({ mobile = false, onLinkClick }: Props) => {
       )}
 
       {/* Lien vers la page Panier avec badge si le panier contient des articles */}
-      <Link href="/cart" className="relative flex items-center justify-center w-[40px] h-[40px] cursor-pointer" aria-label="Shopping cart">
-        <FaCartShopping className="cart-icon text-2xl text-black" />
+      <Link href="/cart" className="relative flex items-center justify-center w-10 h-10 cursor-pointer 
+                   hover:scale-105 transition-transform duration-200" aria-label="Shopping cart">
+        <FaCartShopping className="text-2xl text-black" />
         {cart.length > 0 && (
-          <span className="absolute -top-1 -right-1 text-[10px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center leading-none shadow-sm">
+          <span className="absolute -top-1 -right-1 text-[10px] bg-red-600 text-white rounded-full w-5 h-5 flex items-center 
+                          justify-center shadow-sm animate-bounce">
             {cart.reduce((acc, item) => acc + item.quantity, 0)}
           </span>
         )}

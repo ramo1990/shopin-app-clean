@@ -8,13 +8,6 @@ import { FaTimes } from "react-icons/fa"
 import clsx from "clsx"
 import { useAuth } from "@/context/AuthContext"
 
-// interface Props {
-//   loggedInUser: {
-//     name: string
-//     email: string
-//     image: string
-//   } | null
-// }
 
 const MobileNavbar = () => {
   const { user: loggedInUser } = useAuth()
@@ -27,7 +20,7 @@ const MobileNavbar = () => {
       <button
         onClick={toggleMenu}
         aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
-        className="p-2 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="p-2 rounded-lg hover:bg-gray-200 transition-colors"
       >
         {isOpen ? <FaTimes className="text-2xl" /> : <FaBars className="text-2xl" />}
       </button>
@@ -35,7 +28,7 @@ const MobileNavbar = () => {
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
           onClick={toggleMenu}
           aria-hidden="true"
         />
@@ -44,17 +37,17 @@ const MobileNavbar = () => {
       {/* Sliding Menu */}
       <aside
         className={clsx(
-          "fixed top-0 left-0 h-full w-64 bg-white shadow-md z-50 p-5 transition-transform duration-300 ease-in-out overflow-hidden",
+          "fixed top-0 left-0 h-full w-64 bg-white shadow-xl z-50 p-5 transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Avatar & Name */}
-        <div className="flex flex-col items-center gap-2 mb-6">
-          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-400 shadow-sm bg-gray-200">
+        <div className="flex flex-col items-center gap-2 mb-6 border-b pb-4">
+          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-300 shadow-sm bg-gray-100">
             {loggedInUser?.image && (
               <Image
-                src={loggedInUser.image}
-                alt={loggedInUser.name}
+                src={loggedInUser.image || "/user_default.png"}
+                alt={loggedInUser.name || "Invité"}
                 width={64}
                 height={64}
                 className="w-full h-full object-cover"
@@ -67,14 +60,14 @@ const MobileNavbar = () => {
         </div>
 
         {/* Links */}
-        <ul className="flex flex-col gap-4 text-sm font-medium">
+        <ul className="flex flex-col gap-3 text-sm font-medium">
           {loggedInUser ? (
             <>
               <li>
                 <Link
                   href="/profile"
                   onClick={toggleMenu}
-                  className="block px-4 py-2 text-gray-700 rounded hover:bg-gray-100"
+                  className="block px-4 py-2 rounded hover:bg-gray-100 transition-colors"
                 >
                   Profil
                 </Link>
@@ -83,7 +76,7 @@ const MobileNavbar = () => {
                 <Link
                   href="/logout"
                   onClick={toggleMenu}
-                  className="block px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  className="block px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors"
                 >
                   Logout
                 </Link>
@@ -94,13 +87,17 @@ const MobileNavbar = () => {
               <Link
                 href="/login"
                 onClick={toggleMenu}
-                className="block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                className="block px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
                 Login
               </Link>
             </li>
           )}
 
+          {/* Separator */}
+          <li className="border-t my-2"></li>
+
+          {/* Cart */}
           <li>
             <Link
               href="/cart"
