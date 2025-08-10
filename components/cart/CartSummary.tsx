@@ -92,7 +92,7 @@ const CartSummary = () => {
 
       <button
         onClick={handleCheckout}
-        className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition font-medium"
+        className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={!user || total < 0}
       >
         Passer la commande

@@ -15,59 +15,38 @@ interface ProductPageClientProps {
 export default function ProductPageClient({ slug }: ProductPageClientProps) {
   const [product, setProduct] = useState<Product | null>(null)
   const [similarProducts, setSimilarProducts] = useState<Product[]>([])
-  // const [reviews, setReviews] = useState<ReviewType[]>([])
-  // const [loading, setLoading] = useState<boolean>(true)
-
-  // const fetchProduct = async () => {
-  //   const token = await refreshTokenIfNeeded()
-  //   console.log('token:', token)
-  //   if (!token) {
-  //     console.warn('Token JWT manquant : utilisateur non connecté')
-  //     return
-  //   }
-
-  //   const res = await axiosInstance.get(`/products/${slug}/`)
-  //   setProduct(res.data)
-  //   return res.data
-  // }
-
-  // const fetchSimilarProducts = async (tagName: string) => {
-  //   const res = await axiosInstance.get(`/products/by-tag/${tagName}/`)
-  //   setSimilarProducts(res.data.results || [])
-  // }
-
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     const prod = await fetchProduct()
-  //     if (prod?.tags?.length) {
-  //       fetchSimilarProducts(prod.tags[0].name)
-  //     }
-  //   }
-  //   loadData()
-  // }, [slug])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
-      const token = await refreshTokenIfNeeded()
-      if (!token) {
-        console.warn('Token JWT manquant : utilisateur non connecté')
-      return
-      }
-
-      const res = await axiosInstance.get(`/products/${slug}/`)
+      // const token = await refreshTokenIfNeeded()
+      // if (!token) {
+      //   console.warn('Token JWT manquant : utilisateur non connecté')
+      // return
+      // }
+      setLoading(true)
+      setError(null)
+      try{
+        const res = await axiosInstance.get(`/products/${slug}/`)
       const prod = res.data
       setProduct(prod)
 
       if (prod?.tags?.length) {
         const similarRes = await axiosInstance.get(`/products/by-tag/${prod.tags[0].name}/`)
         setSimilarProducts(similarRes.data.results || [])
+        }
+      } catch (e) {
+        setError("Impossible de charger le produit.")
+      } finally {
+        setLoading(false)
       }
     }
     loadData()
   }, [slug])
 
-
-
+  if (loading) return <div>Chargement du produit...</div>
+  if (error) return <div>{error}</div>
   if (!product) return <div>Chargement du produit...</div>
 
   return (
