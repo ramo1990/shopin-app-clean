@@ -27,7 +27,11 @@ from django.urls import reverse
 from utils.tokens import generate_email_verification_token
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.exceptions import AuthenticationFailed
-
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.contrib.auth import get_user_model
+from django.shortcuts import render, redirect
+from django.contrib import messages
 
 User = get_user_model()
 
@@ -261,7 +265,7 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            serializer.save()
             return Response({"message": "Utilisateur créé avec succès"}, status=201)
         return Response(serializer.errors, status=400)
 
@@ -383,6 +387,8 @@ def contact_message_view(request):
 
 # Envoi de verification d'email
 class SendVerificationEmailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         user = request.user
         if user.is_verified:
@@ -403,6 +409,8 @@ class SendVerificationEmailAPIView(APIView):
 
 # Verification d'email
 class VerifyEmailAPIView(APIView):
+    permission_classes = [AllowAny] # Pas besoin d'être connecté
+
     def post(self, request):
         token = request.data.get('token')
         if not token:
@@ -423,6 +431,23 @@ class VerifyEmailAPIView(APIView):
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+# activate email
+def activate(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode('utf-8')
+        user = get_user_model().objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True  # Activer l'utilisateur
+        user.save()
+        messages.success(request, "Votre email a été vérifié avec succès !")
+        return redirect('login')  # Rediriger vers la page de connexion
+    else:
+        messages.error(request, "Le lien d'activation est invalide ou a expiré.")
+        return redirect('home')
+    
 # @api_view(['POST'])
 # def contact_message_view(request):
 #     serializer = ContactMessageSerializer(data=request.data)
@@ -533,3 +558,14 @@ def stripe_webhook(request):
             print("❌ Aucune commande trouvée avec cet ID")
 
     return HttpResponse(status=200)
+
+
+import logging
+logger = logging.getLogger('django')
+
+def test_view(request):
+    try:
+        raise ValueError("Test error")
+    except Exception as e:
+        logger.error("An error occurred: %s", e)
+    return HttpResponse("Error logged")
