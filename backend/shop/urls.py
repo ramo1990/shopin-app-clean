@@ -32,6 +32,8 @@ urlpatterns = [
     path('contact/', contact_message_view, name='contact-message'),
     path('order-tracking/', OrderTrackingAPIView.as_view(), name='order-tracking'),
     path("webhook/stripe/", stripe_webhook, name="stripe-webhook"),
+    path("send-verification-email/", SendVerificationEmailAPIView.as_view(), name="send-verification-email"),
+    path("verify-email/", VerifyEmailAPIView.as_view(), name="verify-email"),
 ]
 
 urlpatterns += router.urls

@@ -23,6 +23,10 @@ from django.core.mail import send_mail
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+from django.urls import reverse
+from utils.tokens import generate_email_verification_token
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.exceptions import AuthenticationFailed
 
 
 User = get_user_model()
@@ -376,6 +380,48 @@ def contact_message_view(request):
         return Response({"message": "Message reçu, email affiché en console."}, status=201)
 
     return Response(serializer.errors, status=400)
+
+# Envoi de verification d'email
+class SendVerificationEmailAPIView(APIView):
+    def post(self, request):
+        user = request.user
+        if user.is_verified:
+            return Response({"detail": "User already verified"}, status=status.HTTP_400_BAD_REQUEST)
+
+        token = generate_email_verification_token(user)
+        verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+
+        send_mail(
+            subject="Verification de votre email",
+            message=f"Merci de cliquer sur ce lien pour vérifier votre email : {verification_url}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+
+        return Response({"detail": "Verification email sent"}, status=status.HTTP_200_OK)
+
+# Verification d'email
+class VerifyEmailAPIView(APIView):
+    def post(self, request):
+        token = request.data.get('token')
+        if not token:
+            return Response({"detail": "Token missing"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            access_token = AccessToken(token)
+            if access_token.get('token_type') != 'email_verification':
+                raise AuthenticationFailed("Invalid token type")
+
+            user_id = access_token['user_id']
+            user = User.objects.get(id=user_id)
+            if user.is_verified:
+                return Response({"detail": "User already verified"}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.is_verified = True
+            user.save()
+            return Response({"detail": "Email verified successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # @api_view(['POST'])
 # def contact_message_view(request):

@@ -2,6 +2,7 @@
 
 import { signOut, signIn } from "@/auth"
 import axiosInstance from './axiosInstance'
+import axiosPublic from "./axiosPublic"
 
 // const API_BASE = "http://127.0.0.1:8000/api"  // URL de base de l'API Django
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api"
@@ -69,6 +70,6 @@ export async function registerUser(data: {
   last_name?: string
   phone?: string;
 }) {
-  const response = await axiosInstance.post("/register/", data)
+  const response = await axiosPublic.post("/register/", data)
   return response.data  // Renvoie les données de l'utilisateur enregistré
 }

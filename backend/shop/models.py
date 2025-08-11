@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from django.conf import settings
 import uuid
 from django.utils import timezone
 from datetime import timedelta
@@ -49,7 +50,7 @@ class Tag(models.Model):
 
 # Panier
 class CartItem(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cart_items')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cart_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
 
@@ -65,7 +66,7 @@ class CartItem(models.Model):
 
 # adresse de livraison
 class ShippingAddress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='addresses')
     full_name = models.CharField(max_length=255)
     address = models.TextField()
     city = models.CharField(max_length=100)
@@ -88,7 +89,7 @@ class Order(models.Model):
         # ('paypal', 'PayPal'),
         ('cod', 'Paiement à la livraison'),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     order_id = models.CharField(max_length=100, unique=True, blank=True)
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, null=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
@@ -129,7 +130,7 @@ class OrderItem(models.Model):
 # commentaire et note
 class Review(models.Model):
     product = models.ForeignKey(Product, related_name='reviews', on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])  # 1 à 5
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

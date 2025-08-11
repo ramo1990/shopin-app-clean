@@ -5,6 +5,8 @@ from corsheaders.defaults import default_headers
 import environ
 import dj_database_url
 
+# Creer user
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Charger le fichier .env
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'shop',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -190,17 +193,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Pour développement : affichage de l'e-mail dans la console
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # En prod, utiliser SMTP ou un service comme SendGrid
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'  # Ou Mailgun, Sendinblue, etc.
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = 'ton_email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'mot_de_passe_application'
-# EMAIL_USE_TLS = True
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')  # Ou Mailgun, Sendinblue, etc.
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 
-DEFAULT_FROM_EMAIL = 'no-reply@shopin.com'
-CONTACT_RECEIVER_EMAIL = 'admin@tonsite.com'  # où tu veux recevoir les messages
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+CONTACT_RECEIVER_EMAIL = os.getenv("CONTACT_RECEIVER_EMAIL", "odesanya56@gmail.com")  # où tu veux recevoir les messages
 
 
 # AWS S3 BUCKET
@@ -218,3 +221,4 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+
