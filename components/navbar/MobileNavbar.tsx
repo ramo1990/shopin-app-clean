@@ -8,12 +8,14 @@ import { FaTimes } from "react-icons/fa"
 import clsx from "clsx"
 import { useAuth } from "@/context/AuthContext"
 import { useCartContext } from "@/context/CartContext"
+import { useRouter } from "next/navigation"
 
 
 const MobileNavbar = () => {
   const { user: loggedInUser, logout } = useAuth()
   const { cart, clearCart } = useCartContext() // Récupère le panier dynamique
   const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
   const toggleMenu = () => setIsOpen(prev => !prev)
 
   // Calcul du nombre total d'articles dans le panier
@@ -49,15 +51,15 @@ const MobileNavbar = () => {
         {/* Avatar & Name */}
         <div className="flex flex-col items-center gap-2 mb-6 border-b pb-4">
           <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-300 shadow-sm bg-gray-100">
-            {loggedInUser?.image && (
+
               <Image
-                src={loggedInUser.image || "/user_default.png"}
-                alt={loggedInUser.name || "Invité"}
+                src={loggedInUser?.image || "/user_default.png"}
+                alt={loggedInUser?.name || "Invité"}
                 width={64}
                 height={64}
                 className="w-full h-full object-cover"
               />
-            )}
+          
           </div>
           <p className="text-lg font-semibold text-gray-800 text-center uppercase tracking-wide">
             {loggedInUser?.name || "Invité"}
@@ -94,7 +96,7 @@ const MobileNavbar = () => {
                     await logout();        // Déconnexion
                     clearCart()
                     toggleMenu();          // Ferme le menu mobile
-                    window.location.href = "/";  // Redirection manuelle
+                    router.push("/");  // Redirection manuelle
                   }}
                   className="block w-full text-left px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors"
                 >
