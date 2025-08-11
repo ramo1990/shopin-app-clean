@@ -32,8 +32,8 @@ const Modal = ({
     : buttonText
 
   const triggerClass = addressForm
-    ? "address-btn"
-    : "default-btn my-6 text-sm px-6 py-2 max-sm:text-xs max-sm:px-4"
+    ? "w-full flex justify-center items-center px-6 py-3 bg-black text-white font-medium rounded-lg shadow-sm hover:bg-gray-800 transition text-center text-sm sm:text-base"
+    : "px-6 py-2 bg-black text-white text-sm sm:text-base rounded-md hover:bg-gray-800 transition"
 
   return (
     <Dialog>
@@ -41,14 +41,16 @@ const Modal = ({
         <button className={triggerClass}>{triggerText}</button>
       </DialogTrigger>
 
-      <DialogContent className="px-2">
+      <DialogContent className="px-4 py-6 sm:px-6 rounded-xl shadow-lg max-w-lg">
         <DialogHeader>
-          <DialogTitle className='text-lg font-semibold text-gray-800 mb-4'>
+          <DialogTitle className='text-lg font-semibold text-gray-800 mb-4 text-center'>
             {title || <VisuallyHidden>Dialogue</VisuallyHidden>}
           </DialogTitle>
         </DialogHeader>
 
-        {children}
+        <div className="w-full">
+         {children}
+        </div>
       </DialogContent>
     </Dialog>
   )

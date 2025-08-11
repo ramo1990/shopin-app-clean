@@ -21,11 +21,6 @@ import { useRouter } from 'next/navigation'
 interface Props {
   mobile?: boolean;  // Affichage mobile ou desktop
   onLinkClick?: () => void;  // Callback appelé lors d’un clic sur un lien
-  // loggedInUser: {
-  //   first_name: string;
-  //   email: string;
-  //   image: string;
-  // } | null;
 }
 
 const NavItems = ({ mobile = false, onLinkClick }: Props) => {
