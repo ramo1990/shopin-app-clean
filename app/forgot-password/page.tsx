@@ -40,10 +40,10 @@ const ForgotPasswordPage = () => {
   }
 
   return (
-    <div className='min-h-screen flex justify-center items-center bg-gray-50 px-4'>
+    <div className='min-h-screen flex items-center justify-center bg-gray-50 px-4'>
       {/* Conteneur principal centré */}
-      <div className='bg-white shadow-lg rounded-lg p-6 max-w-md w-full'>
-        <h1 className='text-xl font-semibold mb-4'>Mot de passe oublié</h1>
+      <div className='bg-white w-full max-w-md p-8 rounded-2xl shadow-lg border border-gray-200'>
+        <h1 className='text-2xl font-bold text-gray-900 text-center mb-6'>Mot de passe oublié</h1>
 
         {/* Si la demande a été envoyée avec succès, afficher un message d'information */}
         {success ? (
@@ -53,20 +53,25 @@ const ForgotPasswordPage = () => {
         ) : (
           // Formulaire de saisie de l'adresse email
           <form onSubmit={handleSubmit} className='space-y-4'>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Adresse email
+            </label>
+
             <input
+              id='email'
               type='email'
-              placeholder='Votre email'
-              className='w-full px-4 py-2 border border-gray-300 rounded'
+              placeholder='exemple@gmail.com'
+              className='w-full h-12 px-4 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition'
               value={email}
               onChange={(e) => setEmail(e.target.value)}  // Met à jour l'état à chaque saisie
               required
             />
             {/* Affiche un message d’erreur si la requête a échoué */}
-            {error && <p className='text-red-600 text-sm'>{error}</p>}
+            {error && <p className='text-red-600 text-sm bg-red-50 border border-red-200 p-2 rounded'>{error}</p>}
             {/* Bouton d'envoi du formulaire */}
             <button
               type='submit'
-              className='w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700'
+              className='w-full h-12 bg-blue-600 text-white rounded-lg font-medium shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition'
             >
               Envoyer le lien
             </button>

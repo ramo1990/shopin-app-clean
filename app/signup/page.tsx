@@ -41,46 +41,69 @@ const SignUpPage = () => {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-xl p-6 max-w-md w-full space-y-4"
-      >
-        <h2 className="text-2xl font-bold text-center text-gray-800">Créer un compte</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md border border-gray-100">
+        <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">
+          Créer un compte
+        </h2>
 
-        <input name="username" placeholder="Nom d'utilisateur" value={form.username} onChange={handleChange} className="w-full border px-4 py-2 rounded-md" required />
-        <input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} className="w-full border px-4 py-2 rounded-md" required />
-        <input name="first_name" placeholder="Prénom" value={form.first_name} onChange={handleChange} className="w-full border px-4 py-2 rounded-md" />
-        <input name="last_name" placeholder="Nom" value={form.last_name} onChange={handleChange} className="w-full border px-4 py-2 rounded-md" />
-        <input name="phone" type="tel" placeholder="Téléphone" value={form.phone} onChange={handleChange} className="w-full border px-4 py-2 rounded-md" />
-        <input name="password" type="password" placeholder="Mot de passe" value={form.password} onChange={handleChange} className="w-full border px-4 py-2 rounded-md" required />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* <h2 className="text-2xl font-bold text-center text-gray-800">Créer un compte</h2> */}
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <input name="username" placeholder="Nom d'utilisateur" value={form.username} onChange={handleChange} 
+          className="w-full h-12 border border-gray-300 rounded-lg px-4 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition" 
+          required />
+        
+        <input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} 
+          className="w-full h-12 border border-gray-300 rounded-lg px-4 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition" 
+          required />
 
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">S&rsquo;inscrire</button>
+        <input name="first_name" placeholder="Prénom" value={form.first_name} onChange={handleChange} 
+          className="w-full h-12 border border-gray-300 rounded-lg px-4 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition" />
+
+        <input name="last_name" placeholder="Nom" value={form.last_name} onChange={handleChange} 
+          className="w-full h-12 border border-gray-300 rounded-lg px-4 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition" />
+
+        <input name="phone" type="tel" placeholder="Téléphone" value={form.phone} onChange={handleChange} 
+          className="w-full h-12 border border-gray-300 rounded-lg px-4 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition" />
+
+        <input name="password" type="password" placeholder="Mot de passe" value={form.password} onChange={handleChange} 
+          className="w-full h-12 border border-gray-300 rounded-lg px-4 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition" 
+          required />
+
+        {error && (
+          <p className="text-red-600 text-sm bg-red-50 border border-red-200 p-2 rounded">{error}</p>)}
+
+        <button type="submit" className="w-full h-12 bg-blue-600 text-white rounded-lg font-medium shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition">
+          S&rsquo;inscrire</button>
       </form>
-
-      <div className="text-center text-sm text-gray-400">ou</div>
+      
+      <div className="flex items-center justify-center w-full max-w-md my-6">
+        <span className="flex-grow h-px bg-gray-300"></span>
+        <span className="px-3 text-center text-gray-500 text-sm">ou</span>
+        <span className="flex-grow h-px bg-gray-300"></span>
+      </div>
 
         <button
             type='button'
             onClick={signInWithGoogle}
-            className='w-full flex items-center cursor-pointer justify-center border border-gray-300 py-2 rounded-md hover:bg-gray-50 mt-2'
+            className='w-full h-12 flex items-center justify-center gap-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition'
         >
             <Image
-            src="/casquette.jpeg" // remplace par le logo Google si dispo
+            src="/logo_google.png" // remplace par le logo Google si dispo
             alt="Google Icon"
-            width={20}
-            height={20}
-            className='mr-3'
+            width={60}
+            height={60}
+            className='rounded-full'
             />
             <span className="text-sm font-medium text-gray-700">Continuer avec Google</span>
         </button>
 
-        <p className="text-center text-sm mt-4">
-          Déjà un compte ? <a href="/signin" className="text-blue-600 hover:underline">Connexion</a>
+        <p className="text-center text-sm mt-6 text-gray-600">
+          Déjà un compte ? {" "} 
+          <a href="/signin" className="text-blue-600 hover:underline">Connexion</a>
         </p>
-        
+        </div>
     </div>
   )
 }
