@@ -11,7 +11,7 @@ router.register(r'cart', CartItemViewSet, basename= 'cart')
 urlpatterns = [
     path('products/', ProductListView.as_view(), name='product-list'),
     path('products/<slug:slug>/', ProductDetailView.as_view(), name='product-detail'),
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path("me/", CurrentUserView.as_view(), name='current-user'),
     path('tags/', TagListAPIView.as_view(), name='tag-list'), 
@@ -34,6 +34,8 @@ urlpatterns = [
     path("webhook/stripe/", stripe_webhook, name="stripe-webhook"),
     path('send-verification-email/', send_verification_email, name='send-verification-email'),
     path('verify-email/', verify_email, name='verify-email'),
+    path('resend-verification-email/', resend_verification_email),
+    path("resend-verification-email-with-credentials/", resend_verification_email_with_credentials),
 ]
 
 urlpatterns += router.urls

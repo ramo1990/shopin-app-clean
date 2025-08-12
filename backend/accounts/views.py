@@ -8,6 +8,10 @@ from rest_framework.response import Response
 # from django.contrib.auth.models import User
 from .serializers import *
 from rest_framework.decorators import api_view
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny
+
     
 class RegisterView(APIView):
     def post(self, request):
@@ -48,3 +52,43 @@ def create_user(request):
     )
 
     return Response({"message": "User created successfully", "id": user.id}, status=status.HTTP_201_CREATED)
+
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        if not email or not password:
+            return Response({"detail": "Email et mot de passe requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(request, username=email, password=password)
+
+        if user is None:
+            return Response(
+                {"detail": "Informations erronées."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        if not user.is_active:
+            return Response(
+                {
+                    "detail": "Votre compte n’est pas encore activé.",
+                    "code": "email_not_verified"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "username": user.username
+            }
+        })
