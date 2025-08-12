@@ -30,6 +30,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     phone = models.CharField(max_length=20, blank=True)
+    is_verified = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
 
     is_active = models.BooleanField(default=False)  # <- AJOUT ICI
@@ -37,8 +38,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'email'   # clé d'identification unique
-    REQUIRED_FIELDS = ['username']       # champs obligatoires en plus de l’email
+    USERNAME_FIELD = 'username'   # clé d'identification unique
+    REQUIRED_FIELDS = ['email']       # champs obligatoires en plus de l’email
 
     def __str__(self):
-        return self.email
+        return self.username

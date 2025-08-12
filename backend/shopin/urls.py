@@ -6,6 +6,7 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include('accounts.urls')),
     # Routes de l'app shop
     path('api/', include('shop.urls')),
     # Auth & password reset via dj-rest-auth

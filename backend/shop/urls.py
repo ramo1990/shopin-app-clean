@@ -24,16 +24,16 @@ urlpatterns = [
     path('my-orders/', UserOrdersView.as_view(), name='user-orders'),
     path('shipping-address/', ShippingAddressCreateView.as_view(), name='shipping-address'),
     path('checkout-session/<int:order_id>/', CreateCheckoutSessionView.as_view(), name='checkout-session'),
-    path("register/", RegisterView.as_view(), name="register"),
-    path('existing_user/<str:email>/', existing_user, name='existing_user'),
-    path('create_user/', create_user, name= 'create_user'),
+    # path("register/", RegisterView.as_view(), name="register"),
+    # path('existing_user/<str:email>/', existing_user, name='existing_user'),
+    # path('create_user/', create_user, name= 'create_user'),
     path('search/', search_products, name='product-search'),
     path("get_address/", GetAddressByEmailOrPhoneView.as_view(), name='get-address'),
     path('contact/', contact_message_view, name='contact-message'),
     path('order-tracking/', OrderTrackingAPIView.as_view(), name='order-tracking'),
     path("webhook/stripe/", stripe_webhook, name="stripe-webhook"),
-    path("send-verification-email/", SendVerificationEmailAPIView.as_view(), name="send-verification-email"),
-    path("verify-email/", VerifyEmailAPIView.as_view(), name="verify-email"),
+    path('send-verification-email/', send_verification_email, name='send-verification-email'),
+    path('verify-email/', verify_email, name='verify-email'),
 ]
 
 urlpatterns += router.urls

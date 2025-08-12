@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from corsheaders.defaults import default_headers
 import environ
 import dj_database_url
+from datetime import timedelta
+
 
 # Creer user
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -222,3 +224,14 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),   # au lieu de 5 minutes
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),      # au lieu de 1 jour
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}

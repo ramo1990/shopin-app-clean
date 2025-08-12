@@ -23,15 +23,13 @@ from django.core.mail import send_mail
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
-from django.urls import reverse
-from utils.tokens import generate_email_verification_token
-from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.contrib.auth import get_user_model
-from django.shortcuts import render, redirect
-from django.contrib import messages
+from django.urls import reverse
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from django.views.decorators.csrf import csrf_exempt
 
 User = get_user_model()
 
@@ -261,45 +259,45 @@ def get_me(request):
     return Response(serializer.data)
 
 # s'inscrire
-class RegisterView(APIView):
-    def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Utilisateur créé avec succès"}, status=201)
-        return Response(serializer.errors, status=400)
+# class RegisterView(APIView):
+#     def post(self, request):
+#         serializer = RegisterSerializer(data=request.data)
+#         if serializer.is_valid():
+#             user = serializer.save()
+#             return Response({"message": "Utilisateur créé avec succès"}, status=201)
+#         return Response(serializer.errors, status=400)
 
 # Vérifie si un utilisateur existe par email
-@api_view(['GET'])
-def existing_user(request, email):
-    try:
-        user = User.objects.get(email=email)
-        return Response({"exists": True, "id": user.id})
-    except User.DoesNotExist:
-        return Response({"exists": False}, status=status.HTTP_404_NOT_FOUND)
+# @api_view(['GET'])
+# def existing_user(request, email):
+#     try:
+#         user = User.objects.get(email=email)
+#         return Response({"exists": True, "id": user.id})
+#     except User.DoesNotExist:
+#         return Response({"exists": False}, status=status.HTTP_404_NOT_FOUND)
 
 # Crée un utilisateur à partir des infos envoyées par Google OAuth
-@api_view(['POST'])
-def create_user(request):
-    data = request.data
-    email = data.get("email")
-    username = data.get("username")
+# @api_view(['POST'])
+# def create_user(request):
+#     data = request.data
+#     email = data.get("email")
+#     username = data.get("username")
 
-    if not email or not username:
-        return Response({"error": "email and username are required"}, status=status.HTTP_400_BAD_REQUEST)
+#     if not email or not username:
+#         return Response({"error": "email and username are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    if User.objects.filter(email=email).exists():
-        return Response({"error": "User already exists"}, status=status.HTTP_400_BAD_REQUEST)
+#     if User.objects.filter(email=email).exists():
+#         return Response({"error": "User already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = User.objects.create_user(
-        email=email,
-        username=username,
-        first_name=data.get("first_name", ""),
-        last_name=data.get("last_name", ""),
-        password=User.objects.make_random_password()
-    )
+#     user = User.objects.create_user(
+#         email=email,
+#         username=username,
+#         first_name=data.get("first_name", ""),
+#         last_name=data.get("last_name", ""),
+#         password=User.objects.make_random_password()
+#     )
 
-    return Response({"message": "User created successfully", "id": user.id}, status=status.HTTP_201_CREATED)
+#     return Response({"message": "User created successfully", "id": user.id}, status=status.HTTP_201_CREATED)
 
 # Avis
 class ProductReviewCreateView(generics.CreateAPIView):
@@ -385,69 +383,68 @@ def contact_message_view(request):
 
     return Response(serializer.errors, status=400)
 
-# Envoi de verification d'email
-class SendVerificationEmailAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+# Envoi d'Email
+@api_view(['POST'])
+# @csrf_exempt
+# @permission_classes([IsAuthenticated])
+def send_verification_email(request):
+    email = request.data.get('email')
+    if not email:
+        return Response({"error": "Email requis"}, status=400)
 
-    def post(self, request):
-        user = request.user
-        if user.is_verified:
-            return Response({"detail": "User already verified"}, status=status.HTTP_400_BAD_REQUEST)
-
-        token = generate_email_verification_token(user)
-        verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
-
-        send_mail(
-            subject="Verification de votre email",
-            message=f"Merci de cliquer sur ce lien pour vérifier votre email : {verification_url}",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
-
-        return Response({"detail": "Verification email sent"}, status=status.HTTP_200_OK)
-
-# Verification d'email
-class VerifyEmailAPIView(APIView):
-    permission_classes = [AllowAny] # Pas besoin d'être connecté
-
-    def post(self, request):
-        token = request.data.get('token')
-        if not token:
-            return Response({"detail": "Token missing"}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            access_token = AccessToken(token)
-            if access_token.get('token_type') != 'email_verification':
-                raise AuthenticationFailed("Invalid token type")
-
-            user_id = access_token['user_id']
-            user = User.objects.get(id=user_id)
-            if user.is_verified:
-                return Response({"detail": "User already verified"}, status=status.HTTP_400_BAD_REQUEST)
-
-            user.is_verified = True
-            user.save()
-            return Response({"detail": "Email verified successfully"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-# activate email
-def activate(request, uidb64, token):
     try:
-        uid = urlsafe_base64_decode(uidb64).decode('utf-8')
-        user = get_user_model().objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
-        user = None
-    
-    if user is not None and default_token_generator.check_token(user, token):
-        user.is_active = True  # Activer l'utilisateur
+        user = CustomUser.objects.get(email=email)
+    except CustomUser.DoesNotExist:
+        return Response({"error": "Utilisateur non trouvé"}, status=404)
+
+    # Génération du token
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+    # Construire le lien de vérification, par exemple :
+    verification_url = f"{settings.FRONTEND_URL}/verify-email/?uid={uid}&token={token}"
+
+    # Message avec lien cliquable
+    message = (
+        f"Merci de vous être inscrit.\n"
+        f"Veuillez cliquer sur le lien suivant pour vérifier votre adresse email :\n\n"
+        f"{verification_url}\n\n"
+        f"Si vous n'avez pas fait cette demande, ignorez cet email."
+    )
+
+    send_mail(
+        subject='Vérification de votre adresse email',
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[email],
+        fail_silently=False,
+    )
+        
+    return Response({"message": "Email envoyé avec succès"}, status=200)
+
+# confirmer l'email
+@csrf_exempt
+@api_view(['POST'])
+def verify_email(request):
+    uidb64 = request.data.get('uid')
+    token = request.data.get('token')
+
+    if not uidb64 or not token:
+        return Response({"error": "UID et token sont requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = CustomUser.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+        return Response({"error": "Utilisateur invalide."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if default_token_generator.check_token(user, token):
+        user.is_active = True
         user.save()
-        messages.success(request, "Votre email a été vérifié avec succès !")
-        return redirect('login')  # Rediriger vers la page de connexion
+        return Response({"message": "Email vérifié avec succès."}, status=status.HTTP_200_OK)
     else:
-        messages.error(request, "Le lien d'activation est invalide ou a expiré.")
-        return redirect('home')
-    
+        return Response({"error": "Token invalide ou expiré."}, status=status.HTTP_400_BAD_REQUEST)
+
 # @api_view(['POST'])
 # def contact_message_view(request):
 #     serializer = ContactMessageSerializer(data=request.data)
@@ -558,14 +555,3 @@ def stripe_webhook(request):
             print("❌ Aucune commande trouvée avec cet ID")
 
     return HttpResponse(status=200)
-
-
-import logging
-logger = logging.getLogger('django')
-
-def test_view(request):
-    try:
-        raise ValueError("Test error")
-    except Exception as e:
-        logger.error("An error occurred: %s", e)
-    return HttpResponse("Error logged")
