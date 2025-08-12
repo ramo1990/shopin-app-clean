@@ -6,6 +6,7 @@ import { registerUser, signInWithGoogle } from "@/lib/actions"
 import Image from "next/image"
 import type { AxiosError } from "axios"
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
 const SignUpPage = () => {
   const [form, setForm] = useState({
@@ -28,7 +29,41 @@ const SignUpPage = () => {
     setError("")
     try {
       await registerUser(form)
-      router.push("/signin")
+
+      // Connexion automatique après inscription
+    const loginRes = await fetch(`${API_URL}/token/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: form.username,
+        password: form.password,
+      }),
+    })
+
+    if (!loginRes.ok) {
+      const errorData = await loginRes.json();
+      console.error("Login error:", errorData);
+      throw new Error("Connexion échouée")}
+
+    const loginData = await loginRes.json()
+    localStorage.setItem('accessToken', loginData.access)
+    localStorage.setItem('refreshToken', loginData.refresh)
+    // const token = loginData.access
+
+    // Envoie l’email de vérification
+    const emailRes = await fetch(`${API_URL}/send-verification-email/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${loginData.access}`,
+        "Content-Type": "application/json",
+      },
+    })
+
+    console.log('Email verification response:', await emailRes.json());
+
+      router.push("/signin?email_sent=true")
     } catch (err: unknown) {
       const error = err as AxiosError<{ [key: string]: string[] }>
       if (error.response?.data) {

@@ -1,8 +1,14 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from .models import *
 from django.contrib.auth.hashers import make_password
-
+from accounts.models import CustomUser
+from rest_framework.validators import UniqueValidator
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import authenticate
+from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password
 
 # Tags
 class TagSerializer(serializers.ModelSerializer):
@@ -56,11 +62,11 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
         fields = [ 'id', 'full_name', 'address', 'city', 'postal_code', 'country', 'phone', 'created_at']
         read_only_fields = ['id', 'created_at', 'user']
 
-# user connecté
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+# # user connecté
+# class UserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = CustomUser
+#         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
 # avis
 class ReviewSerializer(serializers.ModelSerializer):
@@ -98,24 +104,32 @@ class OrderSerializer(serializers.ModelSerializer):
     #     return None
 
 # s'inscrire
-class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+# class RegisterSerializer(serializers.ModelSerializer):
+#     email = serializers.EmailField(
+#         required=True,
+#         validators=[UniqueValidator(queryset=CustomUser.objects.all(), message="Email déjà utilisé")]
+#     )
+#     username = serializers.CharField(
+#         required=True,
+#         validators=[UniqueValidator(queryset=CustomUser.objects.all(), message="Nom d'utilisateur déjà pris")]
+#     )
+#     password = serializers.CharField(write_only=True)
 
-    class Meta:
-        model = User
-        fields = ("username", "email", "password", "first_name", "last_name")
+#     class Meta:
+#         model = CustomUser
+#         fields = ("username", "email", "password", "first_name", "last_name")
     
-    def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data["username"],
-            email = validated_data["email"],
-            password= validated_data["password"],
-            first_name=validated_data.get("first_name"),
-            last_name = validated_data.get("last_name"),
-        ) # crée l'utilisateur
-        # validated_data["password"] = make_password(validated_data["password"])
-        # user = User.objects.create(**validated_data)  # crée l'utilisateur
-        return user
+#     def create(self, validated_data):
+#         # user = User.objects.create_user(
+#         #     username=validated_data["username"],
+#         #     email = validated_data["email"],
+#         #     password= validated_data["password"],
+#         #     first_name=validated_data.get("first_name"),
+#         #     last_name = validated_data.get("last_name"),
+#         # ) # crée l'utilisateur
+#         # # validated_data["password"] = make_password(validated_data["password"])
+#         # # user = User.objects.create(**validated_data)  # crée l'utilisateur
+#         return CustomUser.objects.create_user(**validated_data)
 
 # Contact page
 class ContactMessageSerializer(serializers.ModelSerializer):
@@ -123,3 +137,32 @@ class ContactMessageSerializer(serializers.ModelSerializer):
         model = ContactMessage
         fields = ['id', 'name', 'email', 'message', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+
+User = get_user_model()
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        username = attrs.get("username")
+        password = attrs.get("password")
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise AuthenticationFailed({
+                "detail": "Identifiants incorrects",
+                "code": "invalid_credentials"
+            })
+
+        if not check_password(password, user.password):
+            raise AuthenticationFailed({
+                "detail": "Identifiants incorrects.",
+                "code": "invalid_credentials"
+            })
+        
+        if not user.is_active:
+            raise AuthenticationFailed({
+                "detail": "Votre compte n’est pas encore activé. Vérifiez votre email",
+                "code": "email_not_verified"
+            })
+
+        return super().validate(attrs)
