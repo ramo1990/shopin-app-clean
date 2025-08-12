@@ -1,4 +1,3 @@
-# backend/shop/views.py
 from rest_framework.generics import RetrieveAPIView,  ListAPIView, CreateAPIView, ListCreateAPIView
 from rest_framework import viewsets, permissions, status, generics
 from .models import *
@@ -29,9 +28,10 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
-from django.views.decorators.csrf import csrf_exempt
+# from django.views.decorators.csrf import csrf_exempt
+from accounts.serializers import *
 
-User = get_user_model()
+# User = get_user_model()
 
 # Produit
 class ProductListView(ListAPIView):
@@ -385,8 +385,6 @@ def contact_message_view(request):
 
 # Envoi d'Email
 @api_view(['POST'])
-# @csrf_exempt
-# @permission_classes([IsAuthenticated])
 def send_verification_email(request):
     email = request.data.get('email')
     if not email:
