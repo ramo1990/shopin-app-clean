@@ -10,7 +10,7 @@
 import React, {useState} from 'react'
 import Image from "next/image"
 import {loginUser, signInWithGoogle} from '@/lib/actions' // Fonctions pour se connecter avec identifiants ou Google
-import {useRouter} from "next/navigation"  // Hook de navigation Next.js pour rediriger l’utilisateur
+import {useRouter, useSearchParams} from "next/navigation"  // Hook de navigation Next.js pour rediriger l’utilisateur
 import { useAuth } from '@/context/AuthContext'  // Hook personnalisé pour accéder au contexte d’authentification
 import PasswordField from '@/components/password/PasswordField'
 import type { AxiosError } from 'axios'
@@ -25,6 +25,8 @@ const SignInPage = () => {
 
   const router = useRouter() // Pour rediriger après la connexion
   const { login } = useAuth() // Récupère la fonction `login` depuis le contexte AuthProvider
+  const searchParams = useSearchParams()
+  const verified = searchParams.get("verified") === "true"
   
   // Fonction appelée à la soumission du formulaire
   const handleLogin = async (e: React.FormEvent) => {
@@ -52,9 +54,6 @@ const SignInPage = () => {
       const axiosError = err as AxiosError<any>
       const code = axiosError.response?.data?.code
 
-      // if (axiosError.response?.status === 401) {
-      //   const errorDetail = axiosError.response.data?.detail || ""
-
       if ( code === "email_not_verified"){
         setError("Votre compte n’est pas encore activé. Vérifiez votre email.")
         setEmailNotVerified(true)
@@ -71,6 +70,13 @@ const SignInPage = () => {
       <div className='bg-white shadow-xl rounded-2xl p-6 sm:p-10 max-w-sm w-full flex flex-col gap-6'>
         <h2 className='text-3xl font-semibold text-center text-gray-900'>Bienvenue</h2>
         <p className="text-center text-gray-600 text-sm">Connecte-toi à ton compte</p>
+
+        {/* Message après vérification email */}
+        {verified && (
+          <p className="text-green-600 text-sm text-center">
+            Email vérifié ! Vous pouvez maintenant vous connecter.
+          </p>
+        )}
 
         {/* --- Connexion avec identifiants Django --- */}
         <form onSubmit={handleLogin} className='flex flex-col gap-4'>
