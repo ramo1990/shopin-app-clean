@@ -21,6 +21,7 @@ const SignInPage = () => {
   const [username, setUsername] = useState("")  // Nom d’utilisateur saisi
   const [password, setPassword] = useState("")  // Mot de passe saisi
   const [error, setError] = useState("")  // Message d'erreur affiché si connexion échoue
+  const [emailNotVerified, setEmailNotVerified] = useState(false)
 
   const router = useRouter() // Pour rediriger après la connexion
   const { login } = useAuth() // Récupère la fonction `login` depuis le contexte AuthProvider
@@ -46,9 +47,18 @@ const SignInPage = () => {
 
       setError("")  // Réinitialise les erreurs
       router.push("/") // Redirige vers la page d’accueil après connexion réussie
+
     } catch (err: unknown) {
-      const axiosError = err as AxiosError
-      if (axiosError.response?.status === 401) {
+      const axiosError = err as AxiosError<any>
+      const code = axiosError.response?.data?.code
+
+      // if (axiosError.response?.status === 401) {
+      //   const errorDetail = axiosError.response.data?.detail || ""
+
+      if ( code === "email_not_verified"){
+        setError("Votre compte n’est pas encore activé. Vérifiez votre email.")
+        setEmailNotVerified(true)
+      } else if (code === "invalid_credentials") {
         setError("Identifiants incorrects.")
       } else {
         setError("Une erreur est survenue.")
@@ -88,6 +98,38 @@ const SignInPage = () => {
 
           {/* Affiche un message d’erreur s’il y en a */}
           {error && <p className="text-red-500 text-sm">{error}</p>}
+
+          {/* Renvoie de lien de verification d'email */}
+          {emailNotVerified && (
+            <button
+              className="mt-2 text-sm text-blue-600 underline"
+              onClick={async () => {
+                try{
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/resend-verification-email-with-credentials/`, {
+                  method: "POST",
+                  headers: {
+                    // Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({ username, password }), // on passe les identifiants selon le backend
+                })
+
+                const data = await res.json()
+
+                if (res.ok) {
+                  alert(data.message || "Un nouvel email de vérification a été envoyé.");
+                } else {
+                  alert(data.detail || data.error || "Échec de l’envoi de l’email.");
+                }
+              } catch (err) {
+                alert("Une erreur est survenue lors de l'envoi.")
+              }
+            }}
+            >
+              Renvoyer le lien de vérification
+            </button>
+          )}
+
 
           {/* Bouton de soumission du formulaire */}
           <button
