@@ -19,6 +19,7 @@ const SignUpPage = () => {
   })
   const [error, setError] = useState("")
   const router = useRouter()
+  const [successMessage, setSuccessMessage] = useState("")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -27,50 +28,74 @@ const SignUpPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setSuccessMessage("")
+
     try {
-      await registerUser(form)
+      // Enregistrement de l'utilisateur
+      const registerRes = await registerUser(form)
+      console.log("Inscription réussie de signup:", registerRes.message);
 
       // Connexion automatique après inscription
-    const loginRes = await fetch(`${API_URL}/token/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: form.username,
-        password: form.password,
-      }),
-    })
+    // const loginRes = await fetch(`${API_URL}/token/`, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     username: form.username,
+    //     password: form.password,
+    //   }),
+    // })
+    
 
-    if (!loginRes.ok) {
-      const errorData = await loginRes.json();
-      console.error("Login error:", errorData);
-      throw new Error("Connexion échouée")}
+    // if (!loginRes.ok) {
+    //   const errorData = await loginRes.json();
+    //   console.error("Login error:", errorData);
+    //   throw new Error("Connexion échouée")}
 
-    const loginData = await loginRes.json()
-    localStorage.setItem('accessToken', loginData.access)
-    localStorage.setItem('refreshToken', loginData.refresh)
+    // const loginData = await loginRes.json()
+    // localStorage.setItem('accessToken', loginData.access)
+    // localStorage.setItem('refreshToken', loginData.refresh)
     // const token = loginData.access
 
     // Envoie l’email de vérification
     const emailRes = await fetch(`${API_URL}/send-verification-email/`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${loginData.access}`,
+        // Authorization: `Bearer ${loginData.access}`,
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ email: form.email }) // envoie l'email
     })
 
-    console.log('Email verification response:', await emailRes.json());
+    if (!emailRes.ok) {
+      const emailError = await emailRes.json();
+      console.error("Email verification error:", emailError);
+      throw new Error("Erreur d'envoi de l'email de vérification");
+    }
 
-      router.push("/signin?email_sent=true")
+    const emailData = await emailRes.json()
+    console.log('Email verification response:', emailData);
+
+    // Afficher le message de succès avant la redirection
+    // setSuccessMessage(
+    //   // emailData.message
+    //   "Un lien de vérification vous a été envoyé. Veuillez vérifier votre adresse email pour activer votre compte."
+    //   )
+
+    // Rediriger après un délai (par ex 3s)
+    setTimeout(() => {
+      router.push("/email-sent")
+    }, 1000)
+
+      router.push("/email-sent")
     } catch (err: unknown) {
       const error = err as AxiosError<{ [key: string]: string[] }>
       if (error.response?.data) {
         const messages = Object.values(error.response.data).flat().join(" ")
         setError(messages)
       } else {
-        setError("Erreur inconnue.")
+        setError("Erreur inconnue s'est produite.")
       }
     }
   }
@@ -108,6 +133,12 @@ const SignUpPage = () => {
 
         {error && (
           <p className="text-red-600 text-sm bg-red-50 border border-red-200 p-2 rounded">{error}</p>)}
+
+        {successMessage && (
+          <p className="text-green-600 text-sm bg-green-50 border border-green-200 p-2 rounded mb-4">
+            {successMessage}
+          </p>
+        )}
 
         <button type="submit" className="w-full h-12 bg-blue-600 text-white rounded-lg font-medium shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition">
           S&rsquo;inscrire</button>

@@ -1,33 +1,64 @@
-'use client'
+"use client"
 
+import { useState, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams()
-  const token = searchParams.get('token')
-  const [message, setMessage] = useState("Vérification en cours...")
+  const router = useRouter()
+  const [message, setMessage] = useState<string>("Vérification en cours...")
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!token) return
+    const uid = searchParams.get("uid")
+    const token = searchParams.get("token")
 
-    fetch("http://localhost:8000/api/verify-email/", { // <-- adapte l'URL selon ton backend
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ token }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.detail === "Email verified successfully") {
-          setMessage("✅ Votre email a été vérifié avec succès !")
+    if (!uid || !token) {
+      setError("Lien de vérification invalide.")
+      setMessage("")
+      return
+    }
+
+    async function verify() {
+      try {
+        const res = await fetch(`${API_URL}/verify-email/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ uid, token }),
+        })
+
+        const data = await res.json()
+        if (res.ok) {
+          setMessage(data.message || "Email vérifié avec succès.")
+          setError(null)
+
+          // Optionnel : rediriger vers connexion après quelques secondes
+          setTimeout(() => {
+            router.push("/signin")
+          }, 3000)
         } else {
-          setMessage("❌ Erreur: " + data.detail)
+          setError(data.error || "Erreur lors de la vérification.")
+          setMessage("")
         }
-      })
-      .catch(() => setMessage("❌ Une erreur est survenue"))
-  }, [token])
+      } catch (err) {
+        setError("Erreur réseau ou serveur.")
+        setMessage("")
+      }
+    }
 
-  return <div className="text-center mt-10 text-xl">{message}</div>
+    verify()
+  }, [searchParams, router])
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow">
+        {message && <p className="text-green-600 text-center text-lg">{message}</p>}
+        {error && <p className="text-red-600 text-center text-lg">{error}</p>}
+      </div>
+    </div>
+  )
 }
