@@ -32,8 +32,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(max_length=20, blank=True)
     is_verified = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
+    email_verification_sent_at = models.DateTimeField(null=True, blank=True)
 
-    is_active = models.BooleanField(default=False)  # <- AJOUT ICI
+    is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
 
     objects = CustomUserManager()

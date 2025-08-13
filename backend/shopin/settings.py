@@ -225,6 +225,10 @@ AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # pour l’usage normal
+    'auth_backend.InactiveUserBackend',  # pour les comptes inactifs
+]
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),   # au lieu de 5 minutes
@@ -235,3 +239,6 @@ SIMPLE_JWT = {
     "SIGNING_KEY": SECRET_KEY,
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+# Durée de validité des tokens de vérification (en secondes)
+PASSWORD_RESET_TIMEOUT = 1800  # 30 min (à adapter pour les tests)

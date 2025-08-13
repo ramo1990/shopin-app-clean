@@ -421,7 +421,10 @@ def send_verification_email(request):
         recipient_list=[email],
         fail_silently=False,
     )
-        
+    
+    user.email_verification_sent_at = timezone.now()
+    user.save()
+
     return Response({"message": "Email envoyé avec succès"}, status=200)
 
 # Re-envoi d'Email de verification
@@ -454,6 +457,9 @@ def resend_verification_email(request):
         fail_silently=False,
     )
 
+    user.email_verification_sent_at = timezone.now()
+    user.save()
+
     return Response({"message": "Lien de vérification renvoyé avec succès."})
 
 # confirmer l'email
@@ -472,12 +478,20 @@ def verify_email(request):
     except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
         return Response({"error": "Utilisateur invalide."}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Vérifie si le lien a expiré (1h ici)
+    if user.email_verification_sent_at:
+        expiration_time = user.email_verification_sent_at + timezone.timedelta(hours=1)
+        if timezone.now() > expiration_time:
+            return Response({"error": "Le lien a expiré. Veuillez en demander un nouveau."}, status=400)
+
+    # Vérifie le token
     if default_token_generator.check_token(user, token):
         user.is_active = True
+        user.email_verification_sent_at = None # desactive le timestamp
         user.save()
-        return Response({"message": "Email vérifié avec succès."}, status=status.HTTP_200_OK)
+        return Response({"message": "Email vérifié avec succès."}, status=200)
     else:
-        return Response({"error": "Token invalide ou expiré."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Token invalide ou expiré."}, status=400)
 
 # Resend verification Email
 @api_view(['POST'])
@@ -522,6 +536,9 @@ def resend_verification_email_with_credentials(request):
         recipient_list=[user.email],
         fail_silently=False,
     )
+
+    user.email_verification_sent_at = timezone.now()
+    user.save()
 
     return Response({"message": "Lien de vérification renvoyé avec succès."})
 
