@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'django_extensions',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
@@ -67,6 +68,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    # ajouter d'autres domaines si besoin
+]
+
+
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
@@ -83,8 +91,12 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
+
 
 ROOT_URLCONF = 'shopin.urls'
 
@@ -254,3 +266,19 @@ DJREST_AUTH = {
     "PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND": True,
     "LOGIN_ON_PASSWORD_RESET": False,  # # Désactive l'auto-login après reset
 }
+
+# REST_AUTH_SERIALIZERS = {
+#     "PASSWORD_RESET_SERIALIZER": "accounts.serializers.CustomPasswordResetSerializer"
+# }
+
+DJANGO_REST_AUTH = {
+    "PASSWORD_RESET_CONFIRM_URL": "reset-password-confirm?uid={uid}&token={token}",
+}
+
+
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {"console": {"class": "logging.StreamHandler"}},
+#     "root": {"handlers": ["console"], "level": "INFO"},
+# }

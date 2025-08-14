@@ -15,12 +15,11 @@ const ProductsSection = ({title, products}: Props) => {
   const ITEMS_PER_PAGE = 8; // Nombre de produits à afficher par "page"
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  // const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  const totalPages = Array.isArray(products) ? Math.ceil(products.length / ITEMS_PER_PAGE) : 1;
 
-  const paginatedProducts = products.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const paginatedProducts = Array.isArray(products) ?
+   products.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE): [];
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -28,6 +27,14 @@ const ProductsSection = ({title, products}: Props) => {
     }
   };
 
+  if (!Array.isArray(products)) {
+    return (
+      <section className="py-12 text-center text-red-600">
+        <p>Erreur lors du chargement des produits. Veuillez vous connecter.</p>
+      </section>
+    );
+  }
+  
   return (
     <section id='product_section' className='w-full bg-white py-12 px-4 md:px-8 lg:px-16'>
       <div className="max-w-7xl mx-auto">

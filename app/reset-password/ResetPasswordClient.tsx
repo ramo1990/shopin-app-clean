@@ -77,24 +77,9 @@ const ResetPasswordPage = () => {
         ) : (
           // Formulaire de saisie des nouveaux mots de passe
           <form onSubmit={handleReset} className='space-y-4'>
-            {/* <input
-              type='password'
-              placeholder='Nouveau mot de passe'
-              className='w-full px-4 py-2 border border-gray-300 rounded'
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-            /> */}
+    
             <PasswordField password={newPassword} setPassword={setNewPassword}/>
 
-            {/* <input
-              type='password'
-              placeholder='Confirmer le mot de passe'
-              className='w-full px-4 py-2 border border-gray-300 rounded'
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            /> */}
             <PasswordField password={confirmPassword} setPassword={setConfirmPassword}/>
             
             {/* Affichage du message d'erreur si besoin */}
