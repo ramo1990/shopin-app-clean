@@ -2,18 +2,17 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.urls import path, include
 from django.conf import settings
-from django.contrib.auth import views as auth_views
 from dj_rest_auth.views import PasswordResetConfirmView
-from django.views.decorators.csrf import csrf_exempt
-from dj_rest_auth.views import PasswordResetView
 from accounts.views import CSRFExemptPasswordResetView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('accounts.urls')),
-    # Routes de l'app shop
+    path('api/', include('cart.urls')),
     path('api/', include('shop.urls')),
+    path('api/', include('orders.urls')),
+    path('api/', include('payments.urls')),
     
     # Auth & password reset via dj-rest-auth
     path('api/', include('dj_rest_auth.urls')),

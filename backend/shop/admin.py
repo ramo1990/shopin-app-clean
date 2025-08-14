@@ -13,8 +13,8 @@ class ProductAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
     
-admin.site.register(Order)
-admin.site.register(OrderItem)
-admin.site.register(ShippingAddress)
-admin.site.register(ContactMessage)
-admin.site.register(CartItem)
+# admin.site.register(Order)
+# admin.site.register(OrderItem)
+# admin.site.register(ShippingAddress)
+# admin.site.register(ContactMessage)
+# admin.site.register(CartItem)
