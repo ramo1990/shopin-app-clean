@@ -47,18 +47,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'django_extensions',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'dj_rest_auth',
     'shop',
     'accounts',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
     'whitenoise.middleware.WhiteNoiseMiddleware',
-
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -67,6 +67,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    # ajouter d'autres domaines si besoin
+]
+
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -84,8 +91,12 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
+
 
 ROOT_URLCONF = 'shopin.urls'
 
@@ -199,13 +210,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # En prod, utiliser SMTP ou un service comme SendGrid
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')  # Ou Mailgun, Sendinblue, etc.
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587)) 
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER') # email qui recoit les message
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-CONTACT_RECEIVER_EMAIL = os.getenv("CONTACT_RECEIVER_EMAIL", "odesanya56@gmail.com")  # où tu veux recevoir les messages
+CONTACT_RECEIVER_EMAIL = os.getenv("CONTACT_RECEIVER_EMAIL", "shopin@gmail.com")  #  adresse visible par l'utilisateur
 
 
 # AWS S3 BUCKET
@@ -242,3 +253,32 @@ SIMPLE_JWT = {
 
 # Durée de validité des tokens de vérification (en secondes)
 PASSWORD_RESET_TIMEOUT = 1800  # 30 min (à adapter pour les tests)
+
+LOGIN_URL = 'http://localhost:3000/signin'  # ou l’URL de ta page de connexion Next.js ou ton URL de connexion en production
+LOGIN_REDIRECT_URL = 'http://localhost:3000/'  # ou ta home
+LOGOUT_REDIRECT_URL = 'http://localhost:3000/'
+
+# désactiver l’auto-login après reset
+DJREST_AUTH = {
+    "PASSWORD_RESET_CONFIRM_RETYPE": True,  # tu peux garder ça si tu veux
+    "LOGOUT_ON_PASSWORD_CHANGE": True,  # optionnel : déconnecte si déjà loggé
+    "SET_PASSWORD_RETYPE": True,  # si tu utilises le endpoint "set-password"
+    "PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND": True,
+    "LOGIN_ON_PASSWORD_RESET": False,  # # Désactive l'auto-login après reset
+}
+
+# REST_AUTH_SERIALIZERS = {
+#     "PASSWORD_RESET_SERIALIZER": "accounts.serializers.CustomPasswordResetSerializer"
+# }
+
+DJANGO_REST_AUTH = {
+    "PASSWORD_RESET_CONFIRM_URL": "reset-password-confirm?uid={uid}&token={token}",
+}
+
+
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {"console": {"class": "logging.StreamHandler"}},
+#     "root": {"handlers": ["console"], "level": "INFO"},
+# }

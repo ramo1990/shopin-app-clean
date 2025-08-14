@@ -52,16 +52,14 @@ class ProductDetailView(RetrieveAPIView):
 class TagListAPIView(ListAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    # def get(self, request):
-    #     tags = Tag.objects.all()
-    #     serializer = TagSerializer(tags, many=True)
-    #     return Response(serializer.data)
+    permission_classes = [AllowAny]
 
 # dit à DRF d'utiliser slug au lieu de l'id.
 class TagDetailAPIView(RetrieveAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     lookup_field = 'slug'
+    permission_classes = [AllowAny]
 
 class ProductByTagView(generics.ListAPIView):
     serializer_class = ProductSerializer
@@ -179,16 +177,6 @@ class ShippingAddressCreateView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         user = self.request.user
-        # Vérifie si une adresse identique existe déjà sinon cree la
-        # existing = ShippingAddress.objects.filter(
-        #     user=user,
-        #     full_name=serializer.validated_data.get('full_name'),
-        #     address=serializer.validated_data.get('address'),
-        #     city=serializer.validated_data.get('city'),
-        #     postal_code=serializer.validated_data.get('postal_code'),
-        #     country=serializer.validated_data.get('country'),
-        #     phone=serializer.validated_data.get('phone'),
-        # ).first()
 
         # Vérifie s’il existe déjà une adresse pour l’utilisateur
         existing_address = ShippingAddress.objects.filter(user=user).first()
@@ -261,47 +249,6 @@ def get_me(request):
     user = request.user
     serializer = UserSerializer(user, many=False)
     return Response(serializer.data)
-
-# s'inscrire
-# class RegisterView(APIView):
-#     def post(self, request):
-#         serializer = RegisterSerializer(data=request.data)
-#         if serializer.is_valid():
-#             user = serializer.save()
-#             return Response({"message": "Utilisateur créé avec succès"}, status=201)
-#         return Response(serializer.errors, status=400)
-
-# Vérifie si un utilisateur existe par email
-# @api_view(['GET'])
-# def existing_user(request, email):
-#     try:
-#         user = User.objects.get(email=email)
-#         return Response({"exists": True, "id": user.id})
-#     except User.DoesNotExist:
-#         return Response({"exists": False}, status=status.HTTP_404_NOT_FOUND)
-
-# Crée un utilisateur à partir des infos envoyées par Google OAuth
-# @api_view(['POST'])
-# def create_user(request):
-#     data = request.data
-#     email = data.get("email")
-#     username = data.get("username")
-
-#     if not email or not username:
-#         return Response({"error": "email and username are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-#     if User.objects.filter(email=email).exists():
-#         return Response({"error": "User already exists"}, status=status.HTTP_400_BAD_REQUEST)
-
-#     user = User.objects.create_user(
-#         email=email,
-#         username=username,
-#         first_name=data.get("first_name", ""),
-#         last_name=data.get("last_name", ""),
-#         password=User.objects.make_random_password()
-#     )
-
-#     return Response({"message": "User created successfully", "id": user.id}, status=status.HTTP_201_CREATED)
 
 # Avis
 class ProductReviewCreateView(generics.CreateAPIView):
@@ -546,56 +493,6 @@ def resend_verification_email_with_credentials(request):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
     
-
-# @api_view(['POST'])
-# def contact_message_view(request):
-#     serializer = ContactMessageSerializer(data=request.data)
-#     if serializer.is_valid():
-#         contact_message = serializer.save()
-#         # Envoi de l'e-mail
-#         try:
-#             send_mail(
-#                 subject=f"📬 Nouveau message de contact : {contact_message.name}",
-#                 message=(
-#                     f"Nom: {contact_message.name}\n"
-#                     f"Email: {contact_message.email}\n\n"
-#                     f"Message:\n{contact_message.message}"
-#                 ),
-#                 from_email=settings.DEFAULT_FROM_EMAIL,
-#                 recipient_list=[settings.CONTACT_RECEIVER_EMAIL],
-#                 fail_silently=False,
-#             )
-#         except Exception as e:
-#             return Response({
-#                 "error": "Message sauvegardé mais l'envoi de l'email a échoué.",
-#                 "details": str(e)
-#             }, status=500)
-        
-#         return Response({"message": "Message reçu, merci de nous avoir contactés."}, status=201)
-#     return Response(serializer.errors, status=400)
-
-
-# suivi  de commande
-# class OrderTrackingAPIView(RetrieveAPIView):
-#     # permission_classes = [IsAuthenticatedOrReadOnly]  # ou AllowAny si public
-#     # queryset = Order.objects.all()
-#     # serializer_class = OrderSerializer
-#     # lookup_field = 'id'
-#     authentication_classes = [JWTAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, *args, **kwargs):
-#         print("User:", request.user)
-#         print("Auth:", request.auth)
-#         pk = kwargs.get('pk')
-#         try:
-#             order = Order.objects.get(pk=pk, user=request.user)
-#         except Order.DoesNotExist:
-#             return Response({"detail": "Commande non trouvée."}, status=404)
-
-#         serializer = OrderSerializer(order)
-#         return Response(serializer.data)
-
 class OrderTrackingAPIView(APIView):
     def get(self, request):
         order_id = request.query_params.get('order_id')

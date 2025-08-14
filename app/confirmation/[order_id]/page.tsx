@@ -17,7 +17,7 @@ export default function ConfirmationPage() {
       try {
         const rawId = params?.order_id
         if (!rawId) {
-          router.push('/login') // ou une autre page d'erreur
+          router.push('/sigin') // ou une autre page d'erreur
           return
         }
 
@@ -26,7 +26,7 @@ export default function ConfirmationPage() {
         setOrder(data)
       } catch (err) {
         console.error("Erreur lors du chargement de la commande :", err)
-        router.push('/login')  // ou une page d'erreur
+        router.push('/signin')  // ou une page d'erreur
       } finally {
         setLoading(false)
       }

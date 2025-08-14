@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
+from dj_rest_auth.views import PasswordResetConfirmView
 
     
 class RegisterView(APIView):
@@ -92,3 +93,22 @@ class LoginView(APIView):
                 "username": user.username
             }
         })
+
+# Reset password 
+from dj_rest_auth.views import PasswordResetView
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CSRFExemptPasswordResetView(PasswordResetView):
+    pass
+
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    def form_valid(self, form):
+        user = form.save()
+        return Response({
+            'detail': 'Password has been reset.',
+            'username': user.username
+        }, status=status.HTTP_200_OK)
