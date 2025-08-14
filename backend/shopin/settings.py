@@ -54,6 +54,10 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'shop',
     'accounts',
+    'cart',
+    'orders',
+    'payments',
+    'core',
 ]
 
 MIDDLEWARE = [
