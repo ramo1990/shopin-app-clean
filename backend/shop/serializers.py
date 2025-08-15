@@ -20,7 +20,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id', 'title', 'description', 'price', 'image', 'stock', 'slug','tags',
-                  'average_rating', 'total_reviews', 'rating_distribution']
+                  'average_rating', 'total_reviews', 'rating_distribution', 'available']
 
     def get_average_rating(self, obj):
         reviews = obj.reviews.all()
@@ -37,6 +37,11 @@ class ProductSerializer(serializers.ModelSerializer):
             distribution[review.rating] += 1
         return distribution
 
+# image
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ['id', 'image', 'alt_text']
 # avis
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
