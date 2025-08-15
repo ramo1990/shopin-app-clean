@@ -1,14 +1,6 @@
 from rest_framework import serializers
 # from django.contrib.auth.models import User
 from .models import *
-from django.contrib.auth.hashers import make_password
-from accounts.models import CustomUser
-from rest_framework.validators import UniqueValidator
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.contrib.auth import authenticate
-from rest_framework.exceptions import AuthenticationFailed
-from django.contrib.auth import get_user_model
-from django.contrib.auth.hashers import check_password
 
 # Tags
 class TagSerializer(serializers.ModelSerializer):
@@ -51,39 +43,3 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'product', 'user', 'rating', 'comment', 'created_at']
         read_only_fields = ['user', 'created_at']
-
-# Contact page
-# class ContactMessageSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = ContactMessage
-#         fields = ['id', 'name', 'email', 'message', 'created_at']
-#         read_only_fields = ['id', 'created_at']
-
-
-User = get_user_model()
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        username = attrs.get("username")
-        password = attrs.get("password")
-
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            raise AuthenticationFailed({
-                "detail": "Identifiants incorrects",
-                "code": "invalid_credentials"
-            })
-
-        if not check_password(password, user.password):
-            raise AuthenticationFailed({
-                "detail": "Identifiants incorrects.",
-                "code": "invalid_credentials"
-            })
-        
-        if not user.is_active:
-            raise AuthenticationFailed({
-                "detail": "Votre compte n’est pas encore activé. Vérifiez votre email",
-                "code": "email_not_verified"
-            })
-
-        return super().validate(attrs)

@@ -19,8 +19,6 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
 
 
-
-
 # page contact: enregistre et envoie de message
 @api_view(['POST'])
 def contact_message_view(request):
@@ -48,6 +46,7 @@ def contact_message_view(request):
 
 # Envoi d'Email de verification
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def send_verification_email(request):
     email = request.data.get('email')
     if not email:
@@ -126,6 +125,7 @@ def resend_verification_email(request):
 # confirmer l'email
 @csrf_exempt
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def verify_email(request):
     uidb64 = request.data.get('uid')
     token = request.data.get('token')
