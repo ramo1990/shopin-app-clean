@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/', include('orders.urls')),
     path('api/', include('payments.urls')),
     path('api/', include('core.urls')),
+    path('api/', include('customAdmin.urls')),
     
     path('api/', include('dj_rest_auth.urls')),
     # path('', include('django.contrib.auth.urls')), # Utilise les vues HTML de Django

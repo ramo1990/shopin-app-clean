@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'orders',
     'payments',
     'core',
+    'customAdmin'
 ]
 
 MIDDLEWARE = [
