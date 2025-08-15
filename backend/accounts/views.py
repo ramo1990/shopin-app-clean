@@ -4,17 +4,24 @@ from rest_framework import status
 from .serializers import *
 from .models import CustomUser
 from .models import *
-from rest_framework.response import Response
-# from django.contrib.auth.models import User
 from .serializers import *
-from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
-from dj_rest_auth.views import PasswordResetConfirmView
+from dj_rest_auth.views import PasswordResetConfirmView, PasswordResetView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.db.models import Q
+from orders.models import ShippingAddress
+from orders.serializers import ShippingAddressSerializer
 
-    
+
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -95,15 +102,9 @@ class LoginView(APIView):
         })
 
 # Reset password 
-from dj_rest_auth.views import PasswordResetView
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-
 @method_decorator(csrf_exempt, name='dispatch')
 class CSRFExemptPasswordResetView(PasswordResetView):
     pass
-
-
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     def form_valid(self, form):
@@ -112,3 +113,46 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
             'detail': 'Password has been reset.',
             'username': user.username
         }, status=status.HTTP_200_OK)
+    
+# utilisateur connecté
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_me(request):
+    user = request.user
+    serializer = UserSerializer(user, many=False)
+    return Response(serializer.data)
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
+class GetAddressByEmailOrPhoneView(APIView):
+    permission_classes = [AllowAny]  # ou [IsAuthenticated]
+
+    def get(self, request):
+        email = request.GET.get("email")
+        phone = request.GET.get("phone")
+        if not email and not phone:
+            return Response({"error": "Email ou numéro de téléphone requis"}, status=400)
+
+        try:
+            user = User.objects.filter(Q(email=email) | Q(addresses__phone=phone)).distinct().first()
+        except User.DoesNotExist:
+            return Response({"error": "Utilisateur non trouvé"}, status=404)
+
+        if not user:
+            return Response({"error": "Utilisateur non trouvé"}, status=404)
+        
+        address = ShippingAddress.objects.filter(user=user).first()
+        if not address:
+            return Response(None, status=200)  # Aucun contenu
+
+        serializer = ShippingAddressSerializer(address)
+        return Response(serializer.data, status=200)

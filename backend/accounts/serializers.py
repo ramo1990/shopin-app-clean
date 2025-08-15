@@ -1,11 +1,10 @@
 from rest_framework import serializers
 from .models import CustomUser
 from rest_framework.validators import UniqueValidator
-from dj_rest_auth.serializers import PasswordResetSerializer
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth.hashers import check_password
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -32,21 +31,31 @@ class UserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
-# confirmation de mdp
-# class CustomPasswordResetSerializer(PasswordResetSerializer):
-#     def get_email_options(self):
-#         user = get_user_model().objects.get(email=self.data["email"])
 
-#         uid = urlsafe_base64_encode(force_bytes(user.pk))
-#         token = default_token_generator.make_token(user)
+User = get_user_model()
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        username = attrs.get("username")
+        password = attrs.get("password")
 
-#         # Rediriger vers ton frontend, pas Django
-#         reset_url = f"http://localhost:3000/reset-password-confirm?uid={uid}&token={token}"
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise AuthenticationFailed({
+                "detail": "Identifiants incorrects",
+                "code": "invalid_credentials"
+            })
 
-#         return {
-#             "subject_template_name": "registration/password_reset_subject.txt",
-#             "email_template_name": "registration/password_reset_email.html",
-#             "extra_email_context": {
-#                 "reset_url": reset_url
-#             }
-#         }
+        if not check_password(password, user.password):
+            raise AuthenticationFailed({
+                "detail": "Identifiants incorrects.",
+                "code": "invalid_credentials"
+            })
+        
+        if not user.is_active:
+            raise AuthenticationFailed({
+                "detail": "Votre compte n’est pas encore activé. Vérifiez votre email",
+                "code": "email_not_verified"
+            })
+
+        return super().validate(attrs)
