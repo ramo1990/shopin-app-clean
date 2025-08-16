@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import axiosInstance from '@/lib/axiosInstance'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
@@ -22,71 +23,48 @@ export default function AdminProductListPage() {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const token = localStorage.getItem('access')
-    //   if (!token) {
-    //     router.push('/login')
-    //     return
-    //   }
 
       try {
-        // const res = await fetch(`${API_URL}/products/`, {
-        //   headers: {
-        //     Authorization: `Bearer ${token}`,
-        //   },
-        // })
-
-        const res = await fetch(`${API_URL}/products/`)
-
-        if (!res.ok) {
-            const errorText = await res.text()
-            console.error('Erreur:', res.status, errorText)
-            throw new Error('Erreur lors du chargement des produits.')
+        const res = await axiosInstance.get('/custom-admin/products/')
+          setProducts(res.data)
+        } catch (err: any) {
+          setError('Erreur lors du chargement des produits.')
+          console.error(err)
+        } finally {
+          setLoading(false)
         }
-
-        const data = await res.json()
-        console.log('DATA:', data)
-        setProducts(data)
-      } catch (err: any) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
       }
-    }
 
     fetchProducts()
-  }, [router])
+  }, [])
 
-  const handleDelete = async (productId: number) => {
+  const handleDelete = async (slug: string, productId:number) => {
     const confirmed = confirm('Supprimer ce produit ?')
     if (!confirmed) return
 
-    const token = localStorage.getItem('access')
-
     try {
-      const res = await fetch(`${API_URL}/products/${productId}/`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (!res.ok) {
-        throw new Error("Erreur lors de la suppression.")
-      }
+      await axiosInstance.delete(`/custom-admin/products/${slug}/`)
 
       // Met à jour la liste localement
       setProducts((prev) => prev.filter((p) => p.id !== productId))
     } catch (err) {
       alert("Échec de la suppression")
+      console.error(err)
     }
   }
 
   if (loading) return <p>Chargement...</p>
-  if (error) return <p className="text-red-600">{error}</p>
+  // if (error) return <p className="text-red-600">{error}</p>
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Produits</h1>
+
+      {error && (
+        <div className="bg-red-100 text-red-700 p-4 rounded mb-4">
+          {error}
+        </div>
+      )}
 
       <button
         onClick={() => router.push('/admin/products/new')}
@@ -112,12 +90,15 @@ export default function AdminProductListPage() {
             {products.map((prod) => (
               <tr key={prod.id} className="text-center border-t">
                 <td className="p-2">
-                  <img
-                    src={`${API_URL}${prod.image}`}
-                    alt={prod.title}
-                    className="w-16 h-16 object-cover mx-auto"
-                  />
+                  {prod.image ? (
+                    <img
+                      src={prod.image.startsWith('http') ? prod.image : `${API_URL}${prod.image}`}
+                      alt={prod.title}
+                      className="w-16 h-16 object-cover mx-auto"
+                    />
+                  ) : (    <span className="text-gray-500 italic">Aucune image</span>)}
                 </td>
+
                 <td className="p-2">{prod.title}</td>
                 <td className="p-2">{prod.price} €</td>
                 <td className="p-2">{prod.stock}</td>
@@ -129,7 +110,7 @@ export default function AdminProductListPage() {
                     Modifier
                   </button>
                   <button
-                    onClick={() => handleDelete(prod.id)}
+                    onClick={() => handleDelete(prod.slug, prod.id)}
                     className="bg-red-600 text-white px-3 py-1 rounded"
                   >
                     Supprimer
