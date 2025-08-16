@@ -17,5 +17,4 @@ urlpatterns = [
     path("get_address/", GetAddressByEmailOrPhoneView.as_view(), name='get-address'),
     path('password/reset/', CSRFExemptPasswordResetView.as_view(), name="password_reset"),
     path('password/reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-
     ]

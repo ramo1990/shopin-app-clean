@@ -32,14 +32,12 @@ class TagListAPIView(ListAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [AllowAny]
-    permission_classes = [AllowAny]
 
 # dit à DRF d'utiliser slug au lieu de l'id.
 class TagDetailAPIView(RetrieveAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     lookup_field = 'slug'
-    permission_classes = [AllowAny]
     permission_classes = [AllowAny]
 
 class ProductByTagView(generics.ListAPIView):

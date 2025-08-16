@@ -3,9 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import ProductViewSet, TagViewSet
 
 router = DefaultRouter()
-router.register(r'products', ProductViewSet, basename='product')
-router.register(r'tags', TagViewSet, basename='tag')
+router.register(r'products', ProductViewSet, basename='admin-products')
+router.register(r'tags', TagViewSet, basename='admin-tags')
 
-urlpatterns = [
-    path('', include(router.urls)),
-]
+urlpatterns = router.urls

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import axiosInstance from '@/lib/axiosInstance'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
 export default function NewProductPage() {
   const router = useRouter()
@@ -22,9 +23,8 @@ export default function NewProductPage() {
     // Charger les tags depuis le backend
     const fetchTags = async () => {
       try {
-        const res = await fetch(`${API_URL}/tags/`)
-        const data = await res.json()
-        setAllTags(data)
+        const res = await axiosInstance.get('/tags/')
+        setAllTags(res.data)
       } catch (err) {
         console.error('Erreur lors du chargement des tags')
       }
@@ -43,28 +43,23 @@ export default function NewProductPage() {
     formData.append('price', price)
     formData.append('stock', stock)
     if (image) formData.append('image', image)
-    tags.forEach(tag => formData.append('tags', tag))
+    tags.forEach(tagId => formData.append('tag_ids', tagId)) // selon l'attente du backend
 
     try {
-      const token = localStorage.getItem('token')
-      const res = await fetch(`${API_URL}/products/`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.detail || 'Erreur lors de la création du produit.')
-      }
-
+      await axiosInstance.post('/custom-admin/products/', formData)
       setSuccess('Produit créé avec succès')
       router.push('/admin/products') // Redirection vers la liste
     } catch (err: any) {
-      setError(err.message || 'Erreur inconnue.')
+      console.error(err)
+      setError(err?.response?.data?.detail || 'Erreur lors de la création du produit.')
     }
+  }
+
+  const handleTagChange = (id: number, checked: boolean) => {
+    const tagIdStr = id.toString()
+    setTags(prev =>
+      checked ? [...prev, tagIdStr] : prev.filter(tagId => tagId !== tagIdStr)
+    )
   }
 
   return (
@@ -93,6 +88,7 @@ export default function NewProductPage() {
 
         <input
           type="number"
+          step="0.01"
           placeholder="Prix"
           className="w-full border px-4 py-2"
           value={price}
@@ -124,13 +120,8 @@ export default function NewProductPage() {
                 <input
                   type="checkbox"
                   value={tag.id}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setTags([...tags, tag.id.toString()])
-                    } else {
-                      setTags(tags.filter(id => id !== tag.id.toString()))
-                    }
-                  }}
+                  checked={tags.includes(tag.id.toString())}
+                  onChange={(e) => handleTagChange(tag.id, e.target.checked) }
                 />
                 {tag.name}
               </label>
