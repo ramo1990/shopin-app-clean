@@ -19,8 +19,12 @@ interface ProductData {
   description: string
   price: string
   stock: number
-  tags: Tag[]     // maintenant tableau d’objets tags avec id, name, etc.
+  tags: Tag[]
   image: string
+  created_by?: string
+  updated_by?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export default function EditProductPage() {
@@ -32,13 +36,12 @@ export default function EditProductPage() {
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('')
-  const [tagIds, setTagIds] = useState<number[]>([]) // IDs des tags sélectionnés
+  const [tagIds, setTagIds] = useState<number[]>([])
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [allTags, setAllTags] = useState<Tag[]>([])
 
-  // Fetch produit
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -49,11 +52,9 @@ export default function EditProductPage() {
         setDescription(data.description)
         setPrice(data.price)
         setStock(data.stock.toString())
-        // on récupère les IDs des tags
         setTagIds(data.tags.map((tag: Tag) => tag.id))
-      } catch (err: any) {
+      } catch {
         setError("Impossible de récupérer le produit.")
-        console.error(err)
       } finally {
         setLoading(false)
       }
@@ -61,151 +62,156 @@ export default function EditProductPage() {
     fetchProduct()
   }, [slug])
 
-  // Fetch tous les tags pour le select
   useEffect(() => {
     const fetchTags = async () => {
       try {
         const res = await axiosInstance.get('/custom-admin/tags/')
         setAllTags(res.data)
-      } catch (e) {
-        console.error('Impossible de récupérer les tags')
-      }
+      } catch {}
     }
     fetchTags()
   }, [])
 
-  // Gestion changement tags dans le select multiple
   const handleTagsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(e.target.selectedOptions)
-    const ids = selectedOptions.map(option => Number(option.value))
+    const ids = Array.from(e.target.selectedOptions).map(o => Number(o.value))
     setTagIds(ids)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-
     const formData = new FormData()
     formData.append('title', title)
     formData.append('description', description)
     formData.append('price', price)
     formData.append('stock', stock)
-
-    // Envoie des tag_ids (IDs) correctement
     tagIds.forEach(id => formData.append('tag_ids', id.toString()))
-
     if (imageFile) formData.append('image', imageFile)
 
     try {
       await axiosInstance.put(`/custom-admin/products/${slug}/`, formData)
+      alert("Produit mis à jour avec succès.")
       router.push('/admin/products')
-    } catch (err: any) {
+    } catch {
       setError("Erreur lors de la mise à jour.")
-      console.error(err.response?.data)
     }
   }
 
-  if (loading) return <p>Chargement…</p>
-  if (error) return <p className="text-red-600">{error}</p>
-  if (!product) return <p>Produit introuvable</p>
+  if (loading) return <p className="text-center py-10 text-gray-500">Chargement…</p>
+  if (error) return <p className="text-center text-red-600">{error}</p>
+  if (!product) return <p className="text-center text-gray-600">Produit introuvable</p>
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Éditer : {product.title}</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-xl">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Éditer : {product.title}</h1>
+
+      {/* Infos audit */}
+      {product.updated_by && (
+        <p className="text-sm text-gray-600 mb-2">
+          Modifié par <strong>{product.updated_by}</strong> — {new Date(product.updated_at!).toLocaleString()}
+        </p>
+      )}
+      {product.created_by && (
+        <p className="text-sm text-gray-500 mb-6">
+          Créé par <strong>{product.created_by}</strong> — {new Date(product.created_at!).toLocaleString()}
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Titre */}
         <div>
-          <label className="block font-medium">Titre</label>
+          <label className="block font-medium mb-1 text-gray-700">Titre</label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full border rounded px-2 py-1"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             required
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block font-medium">Description</label>
+          <label className="block font-medium mb-1 text-gray-700">Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full border rounded px-2 py-1"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 h-28 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
         </div>
 
         {/* Prix & Stock */}
-        <div className="flex space-x-4">
+        <div className="grid grid-cols-2 gap-6">
           <div>
-            <label className="block font-medium">Prix (€)</label>
+            <label className="block font-medium mb-1 text-gray-700">Prix (€)</label>
             <input
               type="number"
               step="0.01"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="border rounded px-2 py-1"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             />
           </div>
           <div>
-            <label className="block font-medium">Stock</label>
+            <label className="block font-medium mb-1 text-gray-700">Stock</label>
             <input
               type="number"
               value={stock}
               onChange={(e) => setStock(e.target.value)}
-              className="border rounded px-2 py-1"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             />
           </div>
         </div>
 
-        {/* Tags - select multiple */}
+        {/* Tags */}
         <div>
-          <label className="block font-medium">Tags</label>
+          <label className="block font-medium mb-1 text-gray-700">Tags</label>
           <select
             multiple
-            value={tagIds.map(String)} // valeur doit être string[] dans select multiple
+            value={tagIds.map(String)}
             onChange={handleTagsChange}
-            className="w-full border rounded px-2 py-1 h-32"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             {allTags.map((tag) => (
-              <option key={tag.id} value={tag.id}>
-                {tag.name}
-              </option>
+              <option key={tag.id} value={tag.id}>{tag.name}</option>
             ))}
           </select>
-          <small className="text-gray-500">Maintenez Ctrl (Cmd) pour sélectionner plusieurs tags</small>
+          <p className="text-xs text-gray-500 mt-1">Maintenez Ctrl (Cmd) pour sélectionner plusieurs tags</p>
         </div>
 
-        {/* Image & Preview */}
+        {/* Image */}
         <div>
-          <label className="block font-medium">Image</label>
+          <label className="block font-medium mb-1 text-gray-700">Image</label>
           <input
             type="file"
             accept="image/*"
             onChange={(e) => e.target.files?.[0] && setImageFile(e.target.files[0])}
+            className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 
+            file:rounded-lg file:border-0 file:text-sm file:font-medium
+            file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
           {product.image && !imageFile && (
             <img
               src={product.image.startsWith('http') ? product.image : `${API_URL}${product.image}`}
               alt={product.title}
-              className="mt-2 w-32 h-32 object-cover"
+              className="mt-3 w-32 h-32 object-cover rounded-lg border"
             />
           )}
           {imageFile && (
             <img
               src={URL.createObjectURL(imageFile)}
               alt="Preview"
-              className="mt-2 w-32 h-32 object-cover"
+              className="mt-3 w-32 h-32 object-cover rounded-lg border"
             />
           )}
         </div>
 
-        {/* Soumettre */}
+        {/* Bouton */}
         <button
           type="submit"
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          className="px-6 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
         >
           Enregistrer
         </button>

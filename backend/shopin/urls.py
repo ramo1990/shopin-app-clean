@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.conf.urls.static import static
 from django.urls import path, include
 from django.conf import settings
-from dj_rest_auth.views import PasswordResetConfirmView
-from accounts.views import CSRFExemptPasswordResetView
+# from dj_rest_auth.views import PasswordResetConfirmView
+# from accounts.views import CSRFExemptPasswordResetView
 
 
 urlpatterns = [
