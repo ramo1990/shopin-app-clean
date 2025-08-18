@@ -1,11 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
-# from django.contrib.auth.models import User
 from django.conf import settings
-import uuid
-from django.utils import timezone
-from datetime import timedelta
-
+from accounts.models import CustomUser
 
 # produits
 class Product(models.Model):
@@ -19,6 +15,8 @@ class Product(models.Model):
     tags = models.ManyToManyField('Tag', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(CustomUser, related_name='products_created', on_delete=models.SET_NULL, null=True, blank=True) # audit
+    updated_by = models.ForeignKey(CustomUser, related_name='products_updated', on_delete=models.SET_NULL, null=True, blank=True) # audit
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -43,6 +41,9 @@ class Tag(models.Model):
     name = models.CharField(max_length=50)
     slug = models.SlugField(unique=False, blank=True)
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
+    created_by = models.ForeignKey(CustomUser, related_name='tags_created', on_delete=models.SET_NULL, null=True, blank=True)
+    updated_by = models.ForeignKey(CustomUser, related_name='tags_updated', on_delete=models.SET_NULL, null=True, blank=True)
+
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -59,7 +60,7 @@ class Tag(models.Model):
 # commentaire et note
 class Review(models.Model):
     product = models.ForeignKey(Product, related_name='reviews', on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])  # 1 à 5
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
