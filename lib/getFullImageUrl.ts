@@ -3,7 +3,7 @@ export function getFullImageUrl(image: string | null | undefined): string {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://127.0.0.1:8000'
 
   if (!image || image === 'null' || image === 'undefined') {
-    return '/casquette.jpeg'; // fallback local
+    return '/image_default.jpg'; // fallback local
   }
 
   try {

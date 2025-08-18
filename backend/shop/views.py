@@ -42,6 +42,7 @@ class TagDetailAPIView(RetrieveAPIView):
 
 class ProductByTagView(generics.ListAPIView):
     serializer_class = ProductSerializer
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         tag_name = self.kwargs['tag_name']

@@ -97,6 +97,10 @@ const Footer = () => {
         </div>
         </div>
         
+        
+    <div className="bg-red-500 text-white text-xl p-4">
+      Ceci est un test Tailwind
+    </div>
     </footer>
   )
 }

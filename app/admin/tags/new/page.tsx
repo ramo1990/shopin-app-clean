@@ -29,31 +29,44 @@ export default function NewTagPage() {
 
   return (
     <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Ajouter un tag</h1>
-      {error && <p className="text-red-600">{error}</p>}
-      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="bg-white shadow rounded-xl p-6">
+          <h1 className="text-2xl font-bold mb-6 text-gray-800">Ajouter un tag</h1>
+      
+      {error && (
+        <div className="mb-4 p-3 rounded bg-red-100 text-red-700 border border-red-200 text-sm">
+        {error}</div>)}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Nom */}
         <div>
-          <label className="block font-medium">Nom</label>
+          <label className="block font-medium text-gray-700 mb-1">Nom</label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            className="w-full border rounded px-3 py-1"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             required
           />
         </div>
+
+        {/* Image */}
         <div>
-          <label className="block font-medium">Image (optionnel)</label>
+          <label className="block font-medium text-gray-700 mb-1">Image (optionnel)</label>
           <input
             type="file"
             accept="image/*"
             onChange={e => setImageFile(e.target.files?.[0] || null)}
-          />
+            className="block w-full text-sm text-gray-600 border border-gray-300 rounded-lg cursor-pointer 
+                focus:outline-none file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-gray-100 
+                file:text-gray-700 hover:file:bg-gray-200"/>
         </div>
-        <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        {/* Submit */}
+        <button type="submit" 
+          className="w-full bg-green-600 text-white font-medium px-4 py-2 rounded-lg shadow hover:bg-green-700 transition">
           Créer
         </button>
       </form>
     </div>
+  </div>
   )
 }
