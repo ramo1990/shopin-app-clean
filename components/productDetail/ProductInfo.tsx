@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react'
 import Image from "next/image"
 import Button from '../uiComponents/Button'
 import { useCartContext } from '@/context/CartContext'
-
+import { getFullImageUrl } from '@/lib/getFullImageUrl' 
+import { ProductImage } from '@/lib/types'
 
 interface ProductInfoProps{ 
   product: {
@@ -13,6 +14,7 @@ interface ProductInfoProps{
     price: string
     image: string
     description?: string
+    images: ProductImage[]
   }
 }
 
@@ -23,8 +25,10 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
   const [hydrated, setHydrated] = useState(false)
 
   useEffect (() => {
+    console.log("Image principale:", product.image);
+    console.log("Produit reçu dans ProductInfo:", product);
     setHydrated(true)
-  }, [])
+  }, [product])
 
   // const inWishlist = isInWishlist(product.id)
 
@@ -35,15 +39,42 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
       <div className='max-w-7xl mx-auto flex flex-col lg:flex-row gap-12'>
 
         {/* Image du produit */}
-        <div className='w-full max-w-[400px] h-[450px] relative rounded-xl shadow-md overflow-hidden border border-gray-200'>
+        <div className='flex gap-4 overflow-x-auto max-w-[400px]'>
+        {product.image && (
+          <div className='relative w-[200px] h-[250px] rounded-xl shadow border border-gray-200 overflow-hidden'>
+            <Image
+              src={getFullImageUrl(product.image)}
+              alt={product.title}
+              fill
+              className='object-cover rounded-xl'
+              sizes='(max-width: 768px) 100vw, 400px'
+            />
+          </div>)}
+
+          {product.images && product.images.length > 0 ? (
+            product.images.map(img => (
+              <div
+                key={img.id}
+                className='relative w-[200px] h-[250px] rounded-xl shadow border border-gray-200 overflow-hidden'>
+            <Image
+              src={getFullImageUrl(img.image)}
+              alt={img.alt_text || product.title}
+              fill
+              className='object-cover rounded-xl'
+              sizes='(max-width: 768px) 100vw, 400px'
+            />
+        </div>))
+          ) : (
+          !product.image && (
+          <div className='relative w-[200px] h-[250px] rounded-xl shadow border overflow-hidden'>
           <Image
-            src={product.image}
-            alt={product.title}
+            src='/image_default.jpg'
+            alt='Image par défaut'
             fill
-            // unoptimized
             className='object-cover rounded-xl'
-            sizes='(max-width: 768px) 100vw, 400px'
           />
+        </div>)
+        )}
         </div>
 
         {/* Détails du produit */}
@@ -70,7 +101,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                     product_id: product.id,
                     title: product.title,
                     price: product.price,
-                    image: product.image,
+                    image: product.images?.[0]?.image || "/image_default.jpg",
                     quantity: 1,
                   })
                 }}>
@@ -102,5 +133,4 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
     
   )
 }
-
 export default ProductInfo
