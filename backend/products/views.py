@@ -1,7 +1,7 @@
 from rest_framework.generics import RetrieveAPIView,  ListAPIView
 from rest_framework import generics
 from .models import *
-from .serializers import ProductSerializer, TagSerializer
+from .serializers import ProductSerializer
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .serializers import *
@@ -11,6 +11,9 @@ from rest_framework.decorators import api_view
 from django.db.models import Q
 from rest_framework.permissions import AllowAny
 from accounts.serializers import *
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import status
 
 # User = get_user_model()
 
@@ -27,7 +30,21 @@ class ProductDetailView(RetrieveAPIView):
     serializer_class = ProductSerializer
     lookup_field = 'slug'
     permission_classes = [AllowAny]
-    
+
+# plusieurs images
+class ProductImageUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+    permission_classes = [IsAuthenticated]  # selon besoin
+
+    def post(self, request, pk, format=None):
+        product = Product.objects.get(pk=pk)
+        serializer = MultipleProductImagesSerializer(data=request.data, context={'product': product})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Images uploaded successfully'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+ 
 # recherche produit
 @api_view(['GET'])
 def search_products(request):

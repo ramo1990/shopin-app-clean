@@ -1,4 +1,9 @@
-// types.ts
+export interface ProductImage {
+  id: number
+  image: string
+  alt_text: string
+}
+
 export interface Product {
     id: number;
     title: string;
@@ -7,6 +12,12 @@ export interface Product {
     price: string;
     slug: string;
     stock: number;
+    images: ProductImage[]
+    available: boolean
+    tags: { name: string; slug: string }[]
+    average_rating: number
+    total_reviews: number
+    rating_distribution: Record<number, number>
   }
   
   export interface LoggedInUser {
