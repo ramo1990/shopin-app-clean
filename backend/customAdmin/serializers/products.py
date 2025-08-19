@@ -1,11 +1,7 @@
 from rest_framework import serializers
-from shop.models import Product, Tag, Review
+from products.models import Product, Review
 from customAdmin.serializers.tags import TagSerializer
-
-# class TagSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Tag
-#         fields = ['id', 'name', 'slug', 'image']
+from tags.models import Tag
 
 class ProductSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)

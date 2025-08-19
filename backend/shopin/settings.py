@@ -52,13 +52,14 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'dj_rest_auth',
-    'shop',
+    'products',
     'accounts',
     'cart',
     'orders',
     'payments',
     'core',
-    'customAdmin'
+    'customAdmin',
+    'tags',
 ]
 
 MIDDLEWARE = [

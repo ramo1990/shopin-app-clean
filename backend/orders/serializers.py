@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import *
-from shop.serializers import ProductSerializer
+from products.serializers import ProductSerializer
 
 # adresse de livraison
 class ShippingAddressSerializer(serializers.ModelSerializer):
