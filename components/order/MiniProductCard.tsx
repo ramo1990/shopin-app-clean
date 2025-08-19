@@ -12,7 +12,7 @@ const MiniProductCard = ({ item }: {item: OrderitemType}) => {
   const product = item.product
   const imageUrl = item?.product?.image 
       ? (item.product.image.startsWith('http') ? item.product.image : `${BASE_URL}${item.product.image}`)
-      : "/casquette.jpeg"
+      : "/image_default.jpg"
 
   return (
     <Link href={`/products/${product.slug}`} className='block'>

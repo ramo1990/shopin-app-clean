@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Sum, Count
 from orders.models import Order
-from shop.models import Product
+from products.models import Product
 from datetime import datetime, timedelta
 from rest_framework.permissions import BasePermission
 

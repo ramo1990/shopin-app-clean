@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from rest_framework import viewsets, permissions
-from shop.models import Product
+from products.models import Product
 from customAdmin.serializers.products import ProductSerializer
 
 class IsAdminUser(permissions.BasePermission):

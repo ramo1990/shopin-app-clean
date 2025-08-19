@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from shop.models import Tag
+from tags.models import Tag
 
 class TagSerializer(serializers.ModelSerializer):
     created_by = serializers.StringRelatedField(read_only=True)

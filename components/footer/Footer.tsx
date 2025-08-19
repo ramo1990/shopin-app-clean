@@ -96,7 +96,6 @@ const Footer = () => {
             © {new Date().getFullYear()} Shopin. Tous droits reservés. </p>
         </div>
         </div>
-        
     </footer>
   )
 }

@@ -3,7 +3,7 @@ import axiosInstance from "./axiosInstance"
 import { refreshTokenIfNeeded } from "./auth"
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BACKEND_BASE_URL
+    baseURL: process.env.NEXT_PUBLIC_API_URL
 })
 
 // GET user by email

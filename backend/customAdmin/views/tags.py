@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions, filters
-from shop.models import Tag
+from tags.models import Tag
 from customAdmin.serializers.tags import TagSerializer
 
 
