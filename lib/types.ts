@@ -1,7 +1,21 @@
 export interface ProductImage {
   id: number
   image: string
-  alt_text: string
+  alt_text?: string
+}
+
+export interface ProductVariant {
+  id: number;
+  title?: string;
+  description?: string
+  color?: string;
+  size?: string;
+  price: string;
+  stock: number;
+  image?: string | null;
+  available: boolean;
+  variant: string
+  images?: ProductImage[]
 }
 
 export interface Product {
@@ -17,6 +31,7 @@ export interface Product {
     tags: { name: string; slug: string }[]
     average_rating: number
     total_reviews: number
+    variants?: ProductVariant[]
     rating_distribution: Record<number, number>
   }
   
@@ -80,4 +95,14 @@ export interface Product {
     created_at: string
     stripe_checkout_id: string | null
     user: number
+  }
+
+  export interface CartItem {
+    id?: number
+    product_id: number
+    title: string
+    price: string
+    image: string
+    quantity: number
+    variant_id?: number
   }

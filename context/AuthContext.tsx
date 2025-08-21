@@ -3,7 +3,10 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { jwtDecode } from 'jwt-decode'
-import { useCartContext } from './CartContext' // (optionnel) pour vider le panier à la déconnexion
+// import { useCartContext } from './CartContext' // (optionnel) pour vider le panier à la déconnexion
+import axiosInstance from '@/lib/axiosInstance'
+import { refreshTokenIfNeeded } from '@/lib/auth'
+
 
 // Définition de l'interface d'un utilisateur typé
 interface User {
@@ -29,19 +32,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
-  // const {data: session, status} = useSession()
   const [loading, setLoading] = useState(true)   // au début, l’état est "en chargement"
-  // const [loading, setLoading]= useState(true)
-
 
   // Initialisation uniquement pour JWT local (si OAuth non utilisé)
   useEffect(() => {
-    // if (typeof window === 'undefined') return
-    
-    // if (!session) {
-    try {
-      const storedToken = localStorage.getItem('accessToken')
+      try {
+        const storedToken = localStorage.getItem('accessToken')
         const storedUser = localStorage.getItem('user')
+
         if (storedToken && storedUser) {
           setToken(storedToken)
           setUser(JSON.parse(storedUser))
@@ -54,14 +52,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, [])
 
   // Fonction de connexion : stocke le token + les infos utilisateur passées depuis le backend
-  const login = (token: string, user: User) => {
+  const login = (token: string, user: User, nextUrl?:string) => {
     try {
     localStorage.setItem('accessToken', token)  // stocke le token côté navigateur
     localStorage.setItem('user', JSON.stringify(user))
     setToken(token)
     setUser(user) // garde les vraies infos utilisateur reçues via /me/ (backend Django)
-  } catch (err){
-    console.error('impossible de sauvegarder le token', err)
+
+    if (nextUrl) {
+      window.location.href=nextUrl
+      } 
+  } catch (err) {
+    console.error('Impossible de sauvegarder le token', err)
   }
 }
 

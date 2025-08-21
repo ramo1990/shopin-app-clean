@@ -8,8 +8,6 @@ import { refreshTokenIfNeeded } from '@/lib/auth'
 import { useAuth } from '@/context/AuthContext'
 
 
-// interface CartSummaryProps {}
-
 const CartSummary = () => {
   const { cart, clearCart } = useCartContext()
   const { user } = useAuth()
@@ -26,7 +24,8 @@ const CartSummary = () => {
     const paymentMethod = 'card'
   
     if (!token) {
-      alert('Veuillez vous connecter pour continuer.');
+      // alert('Veuillez vous connecter pour continuer.');
+      router.push('/signin?next=/checkout');
       return;
     }
     
@@ -93,7 +92,7 @@ const CartSummary = () => {
       <button
         onClick={handleCheckout}
         className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={!user || total < 0}
+        disabled={total < 0}
       >
         Passer la commande
       </button>
