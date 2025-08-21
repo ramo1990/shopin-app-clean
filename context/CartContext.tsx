@@ -13,6 +13,7 @@ interface CartContextType {
   removeFromCart: (productId: number) => Promise<void>
   updateQuantity: (productId: number, qty: number) => Promise<void>
   clearCart: () => void
+  fetchCart: () => Promise<void>
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -59,7 +60,38 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     fetchCart()
-  }, [user]) // ✅ refetch panier si user change
+  }, [user]) // refetch panier si user change
+
+  // Fusion automatique du panier anonyme après login
+  useEffect(() => {
+    const mergeCartAfterLogin = async () => {
+      const token = await refreshTokenIfNeeded()
+      const anonId = localStorage.getItem('anonymous_user_id')
+      if (!token || !anonId) return
+
+      try {
+        await axiosInstance.post(
+          'cart/merge/',
+          { anonymous_user_id: anonId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+        localStorage.removeItem('anonymous_user_id')
+        console.log('Panier anonyme fusionné avec succès')
+        await fetchCart()
+      } catch (err) {
+        console.error('Erreur fusion panier dans CartContext :', err)
+      }
+    }
+
+    if (user) {
+      mergeCartAfterLogin()
+    }
+  }, [user])
 
   // ✅ Ajout au panier (connecté ou non)
   const addToCart = async (item: CartItem) => {
@@ -116,11 +148,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (anonId) params['anonymous_user_id'] = anonId;
     }
   
-    await axiosInstance.delete(`cart/${itemId}/`, {
-      headers,
-      params,
-    });
-  
+    await axiosInstance.delete(`cart/${itemId}/`, { headers, params });
     await fetchCart();
   };
   
@@ -140,11 +168,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   
       const data = { quantity: qty };
   
-      await axiosInstance.patch(`cart/${itemId}/`, data, {
-        headers,
-        params,  // 👈 ajoute l'ID anonyme ici
-      });
-  
+      await axiosInstance.patch(`cart/${itemId}/`, data, { headers, params });
       await fetchCart();
     } catch (err) {
       console.error('Erreur updateQuantity:', err);
@@ -152,13 +176,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };  
   
-
   const clearCart = () => setCart([])
 
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart }}
-    >
+      value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, fetchCart }}>
       {children}
     </CartContext.Provider>
   )
@@ -169,144 +191,3 @@ export const useCartContext = () => {
   if (!context) throw new Error('useCartContext must be used within CartProvider')
   return context
 }
-
-
-
-// 'use client'
-
-// import { createContext, useContext, useState, useEffect, ReactNode} from 'react'
-// import axiosInstance from '@/lib/axiosInstance'
-// import { useAuth } from './AuthContext'
-// import { refreshTokenIfNeeded } from '@/lib/auth'
-// import { CartItem } from '@/lib/types'
-
-
-// interface CartContextType {
-//   cart: CartItem[]
-//   addToCart: (item: CartItem) => Promise<void>
-//   removeFromCart: (productId: number) => Promise<void>
-//   updateQuantity: (productId: number, qty: number) => Promise<void>
-//   clearCart: () => void
-// }
-
-// const CartContext = createContext<CartContextType | undefined>(undefined)
-
-// export const CartProvider = ({ children }: { children: ReactNode }) => {
-//   const [cart, setCart] = useState<CartItem[]>([])
-//   const { user } = useAuth()
-//   const [error, setError] = useState<string | null>(null)
-
-//   // useEffect(() => {
-//   //   if (user) {
-//   //     fetchCart()
-//   //   }
-//   // })
-
-//   // ✅ Déclaré ici pour pouvoir le réutiliser
-//   const fetchCart = async () => {
-//     try {
-//       const token = await refreshTokenIfNeeded()
-//       const headers: Record<string, string> = {}
-  
-//       if (token) {
-//         headers['Authorization'] = `Bearer ${token}`
-//       }
-  
-//       const res = await axiosInstance.get('cart/', { headers })
-//       setCart(res.data)
-//     } catch (err) {
-//       console.error('Erreur de chargement du panier :', err)
-//       setCart([])
-//     }
-//   }
-
-//   useEffect(() => {
-//     fetchCart()
-//   }, [])
-
-//   const addToCart = async (item: CartItem) => {
-//     console.log('Début addToCart dans cartcontext:', item);
-//     try {
-//       const token = await refreshTokenIfNeeded();
-//       // if (!token) {
-//       //   alert('Vous devez être connecté pour ajouter un produit au panier.');
-//       //   return;
-//       // }
-      
-//       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-//       if (token) {
-//         headers['Authorization'] = `Bearer ${token}`;
-//       }
-      
-//       const existing = cart.find(p => p.product_id === item.product_id);
-  
-//       if (existing) {
-//         console.log('Produit déjà dans le panier, mise à jour quantité...');
-//         // Update quantité
-//         const res = await axiosInstance.patch(`cart/${existing.id}/`, {
-//           quantity: existing.quantity + item.quantity,
-//         }, { headers });
-//         console.log('Quantité mise à jour:', res.data);
-//       } else {
-//         console.log('Produit non présent, ajout...');
-//         // Création item panier
-//         const res = await axiosInstance.post('cart/', {
-//           product: item.product_id,
-//           quantity: item.quantity,
-          
-//         }, {
-//           headers
-//         });
-//         console.log('Produit ajouté:', res.data);
-//       }
-  
-//       await fetchCart();
-//       console.log('Panier rechargé', cart);
-//     } catch (err) {
-//       setError("Erreur lors de l'ajout au panier");
-//       console.error('Erreur addToCart:', err);
-//     }
-//   };
-  
-  
-
-//   const removeFromCart = async (itemId: number) => {
-//     const token = await refreshTokenIfNeeded()
-//     if (!token) return
-
-//     await axiosInstance.delete(`cart/${itemId}/`, {
-//       headers: { Authorization: `Bearer ${token}` }
-//     })
-
-//     await fetchCart() // 🔁
-//   }
-
-//   const updateQuantity = async (itemId: number, qty: number) => {
-//     const token = await refreshTokenIfNeeded()
-//     if (!token) return
-  
-//     await axiosInstance.patch(`cart/${itemId}/`, {
-//       quantity: qty
-//     }, {
-//       headers: { Authorization: `Bearer ${token}` }
-//     })
-  
-//     await fetchCart()
-//   }
-
-//   const clearCart = () => setCart([])
-
-//   return (
-//     <CartContext.Provider
-//       value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart }}
-//     >
-//       {children}
-//     </CartContext.Provider>
-//   )
-// }
-
-// export const useCartContext = () => {
-//   const context = useContext(CartContext)
-//   if (!context) throw new Error('useCartContext must be used within CartProvider')
-//   return context
-// }

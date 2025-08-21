@@ -1,13 +1,13 @@
 from rest_framework import viewsets
 from .models import *
 from .serializers import *
-# from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 import uuid
-
+from rest_framework.decorators import action
 
 # Panier
 class CartItemViewSet(viewsets.ModelViewSet):
@@ -33,9 +33,7 @@ class CartItemViewSet(viewsets.ModelViewSet):
         anonymous_user_id = (
             self.request.data.get('anonymous_user_id')
             or self.request.query_params.get('anonymous_user_id')
-            or str(uuid.uuid4())
-            )
-
+            or str(uuid.uuid4()))
         if user:
             anonymous_user_id = None
         elif not anonymous_user_id:
@@ -83,3 +81,30 @@ class CartItemViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # fusion de panier user non connecté et connecté
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def merge(self, request):
+        anon_id = request.data.get('anonymous_user_id')
+
+        if not anon_id:
+            return Response({'error': 'anonymous_user_id requis'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Récupère les articles anonymes
+        anonymous_items = CartItem.objects.filter(anonymous_user_id=anon_id)
+
+        for item in anonymous_items:
+            # Vérifie si un item identique existe déjà pour cet utilisateur
+            existing = CartItem.objects.filter(user=request.user, product=item.product).first()
+            if existing:
+                # S’il existe, on ajoute la quantité
+                existing.quantity += item.quantity
+                existing.save()
+                item.delete()
+            else:
+                # Sinon, on attribue l'item anonyme à l'utilisateur
+                item.user = request.user
+                item.anonymous_user_id = None
+                item.save()
+
+        return Response({'message': 'Panier fusionné avec succès'}, status=status.HTTP_200_OK)
