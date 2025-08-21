@@ -35,7 +35,30 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='product_images/')
     alt_text = models.CharField(max_length=255, blank=True)
-    
+
+# produit variant
+class ProductVariant(models.Model):
+    product = models.ForeignKey(Product, related_name='variants', on_delete=models.CASCADE)
+    color = models.CharField(max_length=50, blank=True)
+    size = models.CharField(max_length=50, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.PositiveIntegerField()
+    image = models.ImageField(upload_to='variant_images/', null=True, blank=True)
+    available = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.product.title} - {self.color} {self.size}"
+
+# images variants
+class ProductVariantImage(models.Model):
+    variant = models.ForeignKey('ProductVariant', related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='variant_images/')
+    alt_text = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return f"Image for {self.variant}"
+
+
 # commentaire et note
 class Review(models.Model):
     product = models.ForeignKey(Product, related_name='reviews', on_delete=models.CASCADE)

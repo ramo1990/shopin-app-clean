@@ -8,8 +8,23 @@ class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ['id', 'image', 'alt_text']
-        
+
+class ProductVariantImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductVariantImage
+        fields = ['id', 'image', 'alt_text']
+
+# produit variant
+class ProductVariantSerializer(serializers.ModelSerializer):
+    images = ProductVariantImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ProductVariant
+        fields = ['id', 'color', 'size', 'price', 'stock', 'image', 'images', 'available']
+
+# Produit
 class ProductSerializer(serializers.ModelSerializer):
+    variants = ProductVariantSerializer(many= True, read_only=True)
     average_rating = serializers.SerializerMethodField()
     total_reviews = serializers.SerializerMethodField()
     rating_distribution = serializers.SerializerMethodField()
@@ -18,7 +33,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'title', 'description', 'price', 'image', 'images', 'stock', 'slug','tags',
+        fields = ['id', 'title', 'description', 'price', 'image', 'images', 'stock', 'slug','tags', 'variants',
                   'average_rating', 'total_reviews', 'rating_distribution', 'available', 'created_at', 'updated_at']
 
     def get_average_rating(self, obj):

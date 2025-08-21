@@ -4,10 +4,10 @@ import React from 'react'
 import Image from "next/image"
 import { Minus, Plus, X } from 'lucide-react'
 import { useCartContext } from '@/context/CartContext'
-import type { CartItem } from '@/context/CartContext'
+import type { CartItem as CartItemType} from '@/lib/types'
 
 interface Props {
-  item: CartItem
+  item: CartItemType
 }
 
 const CartItem = ({ item }: Props) => {
