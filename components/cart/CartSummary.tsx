@@ -7,7 +7,6 @@ import axiosInstance from '@/lib/axiosInstance'
 import { refreshTokenIfNeeded } from '@/lib/auth'
 import { useAuth } from '@/context/AuthContext'
 
-
 const CartSummary = () => {
   const { cart, clearCart } = useCartContext()
   const { user } = useAuth()
@@ -19,56 +18,58 @@ const CartSummary = () => {
   const total = subtotal + estimatedTax
 
   const handleCheckout = async () => {
-    console.log("🛒 Checkout button clicked")
-    const token = await refreshTokenIfNeeded();
+    const token = await refreshTokenIfNeeded()
     const paymentMethod = 'card'
-  
+
     if (!token) {
-      // alert('Veuillez vous connecter pour continuer.');
-      router.push('/signin?next=/checkout');
-      return;
+      router.push('/signin?next=/checkout')
+      return
     }
-    
-    
+
     try {
-      // Vérifier si une adresse existe
       const res = await axiosInstance.get('/shipping-address/', {
         headers: { Authorization: `Bearer ${token}` },
-      });
-  
-      if (res.data.length === 0) {
-        // Pas d’adresse, rediriger vers le formulaire
-        router.push('/checkout');
-      } else {
-        // Adresse présente, créer commande
-        const addressId = res.data[0].id;
-  
-        const order = await axiosInstance.post('/orders/', {
-          shipping_address_id: addressId,
-          payment_method: paymentMethod,
-        }, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        
-        console.log('Commande créée:', order.data)
+      })
 
-        clearCart();
-        router.push(`/payment/${order.data.order_id}`);
-      }
-    } catch (err) {
-      console.error('Erreur lors du passage de commande:', err);
-      setError("Erreur lors du passage de la commande.");
+      if (res.data.length === 0) {
+        // Pas encore d'adresse => redirige vers checkout pour en ajouter une
+        router.push('/checkout')
+        return
+      } 
+      
+      const addressId = res.data[0].id
+
+      const order = await axiosInstance.post(
+          '/orders/',
+          {
+            shipping_address_id: addressId,
+            payment_method: paymentMethod,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
+
+        console.log("Réponse de création de commande :", order)
+        
+        const orderId = order?.data?.order_id
+        if (orderId !=null){
+          localStorage.setItem('currentOrderId', orderId.toString()) // ✅ Stocke l’ID
+        // ✅ Rediriger vers checkout sans clearCart (le faire après paiement)
+        router.push('/checkout')
+        } else {
+          console.error('ID de commande manquant dans la réponse:', order)
+          setError("Impossible de récupérer l'ID de la commande.")
+        }
+      } catch (err) {
+      console.error('Erreur lors du passage de commande:', err)
+      setError('Erreur lors du passage de la commande.')
     }
-  };
+  }
 
   return (
     <div className="w-full max-w-sm bg-white rounded-xl shadow-lg p-6 space-y-6">
       <h2 className="text-xl font-semibold text-gray-800">Résumé de la commande</h2>
-
-      <div className='flex justify-between mb-2'>
-        <span>Articles :</span>
-        <span>{cart.length}</span>
-      </div>
 
       <div className="flex justify-between text-gray-700">
         <p>Sous-total</p>
@@ -80,9 +81,7 @@ const CartSummary = () => {
         <p>{estimatedTax.toFixed(2)} $</p>
       </div>
 
-      <hr className='my-4 border-gray-300' />
-
-      <div className='flex justify-between font-semibold text-lg text-gray-900'>
+      <div className="flex justify-between font-semibold text-lg text-gray-900">
         <p>Total</p>
         <p>{total.toFixed(2)} $</p>
       </div>
