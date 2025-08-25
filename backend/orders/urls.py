@@ -9,6 +9,9 @@ urlpatterns = [
     path('orders/<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
     path('my-orders/', UserOrdersView.as_view(), name='user-orders'),
     path('shipping-address/', ShippingAddressCreateView.as_view(), name='shipping-address'),
+
+    path('shipping-address/<int:pk>/', ShippingAddressRetrieveUpdateDestroyView.as_view(), name='shipping-address-detail'),
+
     path('order-tracking/', OrderTrackingAPIView.as_view(), name='order-tracking'),
 
 ]

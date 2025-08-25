@@ -9,6 +9,7 @@ from rest_framework.generics import RetrieveAPIView, ListCreateAPIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from rest_framework import status, generics
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 
 
 
@@ -85,39 +86,17 @@ class ShippingAddressCreateView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         user = self.request.user
-
-        # Vérifie s’il existe déjà une adresse pour l’utilisateur
-        existing_address = ShippingAddress.objects.filter(user=user).first()
-
-        if existing_address:
-            # Mise à jour : serializer avec instance existante
-            serializer = self.get_serializer(existing_address, data=self.request.data)
-        else:
-            # Création : serializer sans instance
-            serializer = self.get_serializer(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
         serializer.save(user=user)
     
-    # aficher l'erreur precise
-    def create(self, request, *args, **kwargs):
-        user = request.user
-        existing_address = ShippingAddress.objects.filter(user=user).first()
 
-        if existing_address:
-            # Mise à jour de l'adresse existante
-            serializer = self.get_serializer(existing_address, data=request.data)
-        else:
-            serializer = self.get_serializer(data=request.data)
 
-        if not serializer.is_valid():
-            print("==== Serializer Errors ====")
-            print(serializer.errors)
-            return Response(serializer.errors, status=400)
-        
-        serializer.save(user=user)
-        print("==== Adresse créée ====")
-        print(serializer.data)      
-        return Response(serializer.data, status=201)
+class ShippingAddressRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    serializer_class = ShippingAddressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Restreindre les adresses à celles de l'utilisateur connecté
+        return ShippingAddress.objects.filter(user=self.request.user)
     
 
 class OrderTrackingAPIView(APIView):
