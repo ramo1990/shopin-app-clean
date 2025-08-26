@@ -131,8 +131,30 @@ export default function CheckoutPage() {
     fetchAddresses()
   }, [])
 
+  const updatePaymentMethod = async (payment_method: string) => {
+    if (!order) return
+    const token = await refreshTokenIfNeeded()
+    if (!token) return
+  
+    try {
+      const res = await axiosInstance.patch(`/orders/${order.id}/`, {
+        payment_method,
+        shipping_address_id: selectedAddressId,
+      }, { headers: { Authorization: `Bearer ${token}` } })
+  
+      setOrder(res.data)
+      console.log("✅ Mode de paiement mis à jour :", res.data)
+    } catch (err) {
+      console.error("Erreur mise à jour mode de paiement :", err)
+    }
+  }  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    const { name, value } = e.target
+    setForm(prev => ({ ...prev, [name]: value }))
+    if (name === 'payment_method'){
+      updatePaymentMethod(value)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -236,6 +258,7 @@ export default function CheckoutPage() {
       console.error("Erreur suppression adresse :", err)
     }
   }
+  
   
   const paymentMethods = [
     { value: 'cod', label: 'Paiement à la livraison 🏠' },
@@ -355,11 +378,11 @@ export default function CheckoutPage() {
                 </label>
               ))}
             </div>
-            <button
+            {/* <button
               type="submit"
               className="mt-4 bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
               Valider le mode de paiement
-            </button>
+            </button> */}
             </form>
           </>
         )}
