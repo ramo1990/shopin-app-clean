@@ -10,7 +10,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import generics
 from rest_framework import status, generics
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
-
+from rest_framework.generics import RetrieveUpdateAPIView
 
 
 # Je dois faire le tracking de la commande
@@ -19,6 +19,7 @@ class CreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        print("Données reçues:", request.data)
         shipping_address_id = request.data.get('shipping_address_id')
         payment_method = request.data.get('payment_method', 'card')
 
@@ -98,6 +99,39 @@ class ShippingAddressRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
         # Restreindre les adresses à celles de l'utilisateur connecté
         return ShippingAddress.objects.filter(user=self.request.user)
     
+# mode payment et adresse
+class OrderRetrieveUpdateAPIView(RetrieveUpdateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+
+    def patch(self, request, *args, **kwargs):
+        order = self.get_object()
+
+        shipping_address_id = request.data.get('shipping_address_id')
+        payment_method = request.data.get('payment_method')
+
+        if shipping_address_id:
+            # Vérifie que l’adresse appartient à l’utilisateur
+            try:
+                shipping_address = ShippingAddress.objects.get(id=shipping_address_id, user=request.user)
+            except ShippingAddress.DoesNotExist:
+                return Response({'error': 'Adresse invalide'}, status=status.HTTP_400_BAD_REQUEST)
+            order.shipping_address = shipping_address
+
+        if payment_method:
+            if payment_method not in ['card', 'paypal', 'cod']:
+                return Response({'error': 'Méthode de paiement invalide'}, status=status.HTTP_400_BAD_REQUEST)
+            order.payment_method = payment_method
+
+        order.save()
+        serializer = self.get_serializer(order)
+        return Response(serializer.data)
+
+
 
 class OrderTrackingAPIView(APIView):
     def get(self, request):

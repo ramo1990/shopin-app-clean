@@ -93,7 +93,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user])
 
-  // ✅ Ajout au panier (connecté ou non)
+  // Ajout au panier (connecté ou non)
   const addToCart = async (item: CartItem) => {
     console.log('Début addToCart dans cartcontext:', item)
     try {
