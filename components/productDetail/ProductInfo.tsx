@@ -7,6 +7,10 @@ import { useCartContext } from '@/context/CartContext'
 import { getFullImageUrl } from '@/lib/getFullImageUrl' 
 import { ProductImage, ProductVariant } from '@/lib/types'
 import { Truck, RotateCcw, LockKeyhole } from 'lucide-react'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Pagination } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/pagination'
 
 
 interface ProductInfoProps { 
@@ -65,59 +69,41 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
   return (
     <section className='bg-gray-50 py-10 px-4 sm:px-8 md:px-12 lg:px-20'>
-      <div className='max-w-7xl mx-auto flex flex-col lg:flex-row gap-12'>
+      <div className='max-w-7xl mx-auto flex flex-col lg:flex-row items-start gap-12 lg:gap-x-20'>
 
-        {/* Zone images */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Miniatures */}
-          <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto">
-            {[product.image, ...(product.images?.map(img => img.image) || [])]
-              .filter(Boolean)
-              .map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(getFullImageUrl(img!))}
-                  className={`relative w-20 h-20 rounded-md border-2 overflow-hidden transition 
-                  ${selectedImage === getFullImageUrl(img!) ? 'border-blue-500' : 'border-gray-200'}`}
-                >
-                  <Image
-                    src={getFullImageUrl(img!)}
-                    alt={`Aperçu ${idx}`}
-                    fill
-                    className="object-cover"
-                  />
-                </button>
-              ))}
+        {/* Zone image + miniatures */}
+        <div className="flex flex-col gap-4 max-w-2xl w-full">
+          {/* Image principale avec Swiper */}
+          <div className="relative w-full max-w-2xl h-[500px] rounded-xl shadow-lg border border-gray-200 overflow-hidden bg-white">
+            <Swiper
+              modules={[Pagination]}
+              pagination={{ clickable: true }}
+              spaceBetween={10}
+              slidesPerView={1}
+              className="w-full h-full">
+              {/* Images à afficher : celles de la variante si elle existe, sinon celles du produit */}
+              {[selectedVariant?.image || product.image,
+                ...(selectedVariant?.images?.map(img => img.image) || product.images?.map(img => img.image) || [])]
+                .filter(Boolean)
+                .map((img, idx) => (
+                  <SwiperSlide key={idx}>
+                    <div className="relative w-full h-[500px]">
+                    <Image
+                      src={getFullImageUrl(img!)}
+                      alt={`Slide ${idx}`}
+                      width={500}
+                      height={500}
+                      className="object-contain"
+                      sizes="(max-width: 768px) 100vw, 500px"
+                    />
+                    </div>
+                  </SwiperSlide>
+                ))}
+            </Swiper>
           </div>
 
-          {/* Image principale */}
-          <div className="relative w-full max-w-2xl h-[500px] rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <Image
-              src={displayedImage}
-              alt={displayedTitle}
-              fill
-              className="object-contain bg-white"
-              sizes="(max-width: 768px) 100vw, 1000px"
-            />
-          </div>
-        </div>
-
-        {/* Détails produit */}
-        <div className='flex flex-1 flex-col gap-6'>
-          <div className='flex flex-col gap-1'>
-            <h1 className='text-3xl font-bold text-gray-900'>{displayedTitle}</h1>
-            <p className='text-2xl font-semibold text-green-600'>{displayedPrice} €</p>
-
-            <div className="text-sm text-gray-700 mt-2">
-              <p>Couleur : {displayedColor}</p>
-              <p>Taille : {displayedSize}</p>
-              <p>Stock : {displayedStock > 0 ? `${displayedStock} en stock` : "Rupture de stock"}</p>
-              <p>Disponibilité : {isAvailable ? "Disponible" : "Indisponible"}</p>
-            </div>
-          </div>
-
-          {/* Miniatures des variantes */}
-          <div className="flex gap-3 mb-4 overflow-x-auto">
+                    {/* Miniatures des variantes */}
+                    <div className="flex gap-3 mb-4 overflow-x-auto">
             {/* Produit principal */}
             <button
               onClick={() => {
@@ -185,6 +171,22 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
                 </button>
               )
             })}
+          </div>
+
+        </div>
+
+        {/* Détails produit */}
+        <div className='flex flex-1 flex-col gap-6'>
+          <div className='flex flex-col gap-1'>
+            <h1 className='text-3xl lg:text-4xl font-bold text-gray-900'>{displayedTitle}</h1>
+            <p className='text-2xl lg:text-3xl font-semibold text-green-600'>{displayedPrice} €</p>
+
+            <div className="text-sm text-gray-700 mt-2">
+              <p>Couleur : {displayedColor}</p>
+              <p>Taille : {displayedSize}</p>
+              <p>Stock : {displayedStock > 0 ? `${displayedStock} en stock` : "Rupture de stock"}</p>
+              <p>Disponibilité : {isAvailable ? "Disponible" : "Indisponible"}</p>
+            </div>
           </div>
 
           {/* Description */}

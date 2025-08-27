@@ -267,7 +267,7 @@ export default function CheckoutPage() {
   ]
   
   return (
-    <div className="max-w-6xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+    <div className="max-w-6xl mx-auto mt-10 px-4 md:px-0 grid grid-cols-1 md:grid-cols-2 gap-12">
       {/* 🧾 FORMULAIRE D’ADRESSE */}
       <div>
         <h1 className="text-2xl font-semibold mb-4">Adresse de livraison</h1>
