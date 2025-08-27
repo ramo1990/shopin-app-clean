@@ -27,7 +27,7 @@ export default function CheckoutPage() {
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null)
   const isEditing = editingAddressId !== null
   const [showAllAddresses, setShowAllAddresses] = useState(false)
-
+  const [cartMerged, setCartMerged] = useState(false)
 
   const [form, setForm] = useState({
     full_name: '',
@@ -56,6 +56,35 @@ export default function CheckoutPage() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showNewAddressForm])
+
+  useEffect(() => {
+    const mergeCartIfNeeded = async () => {
+      const token = await refreshTokenIfNeeded()
+      const anonymousUserId = localStorage.getItem('anonymous_user_id') // ou cookies si tu les lis comme ça
+  
+      if (!token) {
+        setCartMerged(true)
+        return
+      }
+      
+      if (anonymousUserId){
+        try {
+          await axiosInstance.post('/cart/merge/',{ 
+            anonymous_user_id: anonymousUserId },
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+          console.log("✅ Panier fusionné avec succès")
+          // ✅ Après fusion réussie
+          localStorage.removeItem('anonymous_user_id') // ✅ maintenant on peut le supprimer
+        } catch (err) {
+          console.error("Erreur lors de la fusion du panier :", err)
+        }
+      }
+      setCartMerged(true)
+    }
+    
+      mergeCartIfNeeded()
+    }, [])
 
   // Récupère commande existante (redirigé depuis panier)
   useEffect(() => {
@@ -102,18 +131,40 @@ export default function CheckoutPage() {
     fetchAddresses()
   }, [])
 
+  const updatePaymentMethod = async (payment_method: string) => {
+    if (!order) return
+    const token = await refreshTokenIfNeeded()
+    if (!token) return
+  
+    try {
+      const res = await axiosInstance.patch(`/orders/${order.id}/`, {
+        payment_method,
+        shipping_address_id: selectedAddressId,
+      }, { headers: { Authorization: `Bearer ${token}` } })
+  
+      setOrder(res.data)
+      console.log("✅ Mode de paiement mis à jour :", res.data)
+    } catch (err) {
+      console.error("Erreur mise à jour mode de paiement :", err)
+    }
+  }  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    const { name, value } = e.target
+    setForm(prev => ({ ...prev, [name]: value }))
+    if (name === 'payment_method'){
+      updatePaymentMethod(value)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const token = await refreshTokenIfNeeded()
     if (!token) return alert('Connectez-vous pour continuer.')
-  
+
     try {
       let addressId = selectedAddressId
-  
+      // (Gère la création/modif d'adresse si nécessaire)
       if (showNewAddressForm) {
         const { payment_method, ...addressOnly } = form
   
@@ -150,26 +201,43 @@ export default function CheckoutPage() {
           payment_method: form.payment_method,
         })
       }
-  
-      const orderRes = await axiosInstance.post(
-        '/orders/',
+      
+      if (order) {
+        const res = await axiosInstance.patch(`/orders/${order.id}/`, {
+          shipping_address_id: addressId,
+          payment_method: form.payment_method,
+        }, {headers: {Authorization: `Bearer ${token}`},})
+
+        setOrder(res.data)
+        console.log("✅ Commande mise à jour :", res.data)
+      } else {
+        const res = await axiosInstance.post('/orders/',
         {
           shipping_address_id: addressId,
           payment_method: form.payment_method,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-  
-      setOrder(orderRes.data)
+        })
+      
+      setOrder(res.data)
+      localStorage.setItem('currentOrderId', res.data.id.toString())
+      console.log("✅ Nouvelle commande créée :", res.data)
+      }   
     } catch (err: unknown) {
+      console.error("Erreur brute :", err)
+    
       const error = err as AxiosError
-      console.error('Erreur commande/adresse :', {
-        status: error.response?.status,
-        data: error.response?.data,
-        headers: error.response?.headers,
-      })
+    
+      if (error.response) {
+        console.error('Erreur lors de la création de la commande :', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers,
+        })
+      } else {
+        console.error('Pas de réponse du serveur. Message :', error.message)
+      }
     }
   }
   
@@ -191,6 +259,7 @@ export default function CheckoutPage() {
     }
   }
   
+  
   const paymentMethods = [
     { value: 'cod', label: 'Paiement à la livraison 🏠' },
     { value: 'card', label: 'Carte bancaire 💳' },
@@ -198,7 +267,7 @@ export default function CheckoutPage() {
   ]
   
   return (
-    <div className="max-w-6xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+    <div className="max-w-6xl mx-auto mt-10 px-4 md:px-0 grid grid-cols-1 md:grid-cols-2 gap-12">
       {/* 🧾 FORMULAIRE D’ADRESSE */}
       <div>
         <h1 className="text-2xl font-semibold mb-4">Adresse de livraison</h1>
@@ -309,11 +378,11 @@ export default function CheckoutPage() {
                 </label>
               ))}
             </div>
-
-
-              <button className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 w-full">
-                Passer la commande
-              </button>
+            {/* <button
+              type="submit"
+              className="mt-4 bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+              Valider le mode de paiement
+            </button> */}
             </form>
           </>
         )}
@@ -357,14 +426,40 @@ export default function CheckoutPage() {
       <div>
         <h2 className="text-xl font-semibold mb-4">Paiement</h2>
         {order ? (
-          <>
-            <p className="mb-2">Commande #{order.id}</p>
-            <p className="font-semibold mb-4">Total : {order.total} €</p>
-            <StripePayment amount={parseFloat(order.total)} orderId={order.id} />
-          </>
-        ) : (
-          <p className="text-gray-500">Veuillez d’abord valider votre adresse pour accéder au paiement.</p>
-        )}
+  <>
+    <p className="mb-2">Commande #{order.id}</p>
+
+          {order.payment_method ? (
+            <>
+              <p className="font-semibold mb-4">
+                Total : {order.payment_method === 'cod' ? '2.00 € (Caution)' : `${order.total} €`}
+              </p>
+
+              {order.payment_method === 'cod' && (
+                <p className="text-green-700 font-semibold mb-4">
+                  Paiement à la livraison sélectionné. Une caution de 2€ est demandée.
+                </p>
+              )}
+
+              {order.payment_method === 'card' && (
+                <StripePayment amount={parseFloat(order.total)} orderId={order.id} />
+              )}
+
+              {order.payment_method === 'paypal' && (
+                <p className="text-blue-600 font-semibold mb-4">
+                  Paiement PayPal sélectionné. (Composant à venir)
+                </p>
+                // <PayPalPayment amount={parseFloat(order.total)} orderId={order.id} />
+              )}
+            </>
+          ) : (
+            <p className="text-gray-500">Chargement du mode de paiement...</p>
+          )}
+        </>
+      ) : (
+        <p className="text-gray-500">Veuillez d’abord valider votre adresse de livraison avant de payer.</p>
+      )}
+
       </div>
     </div>
   )

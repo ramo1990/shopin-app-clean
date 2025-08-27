@@ -6,11 +6,12 @@ from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshVie
 
 urlpatterns = [
     path('orders/', CreateOrderView.as_view(), name='create-order'),
-    path('orders/<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
+    # path('orders/<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
     path('my-orders/', UserOrdersView.as_view(), name='user-orders'),
     path('shipping-address/', ShippingAddressCreateView.as_view(), name='shipping-address'),
 
     path('shipping-address/<int:pk>/', ShippingAddressRetrieveUpdateDestroyView.as_view(), name='shipping-address-detail'),
+    path('orders/<int:pk>/', OrderRetrieveUpdateAPIView.as_view(), name='order-retrieve-update'),
 
     path('order-tracking/', OrderTrackingAPIView.as_view(), name='order-tracking'),
 
