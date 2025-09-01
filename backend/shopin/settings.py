@@ -87,7 +87,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3002",
-    "https://shopin-three.vercel.app",  # ton frontend Vercel
+    "https://shopin-three.vercel.app",
+    "https://shopin-app-clean.vercel.app"  # ton frontend Vercel
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
