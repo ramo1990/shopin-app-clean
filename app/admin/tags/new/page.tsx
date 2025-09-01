@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import axiosInstance from '@/lib/axiosInstance'
+import axios from 'axios'
 
 export default function NewTagPage() {
   const [name, setName] = useState('')
@@ -21,9 +22,14 @@ export default function NewTagPage() {
     try {
       await axiosInstance.post('/custom-admin/tags/', formData)
       router.push('/admin/tags')
-    } catch (err: any) {
-      console.error(err.response?.data)
-      setError('Erreur lors de la création du tag.')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error(err.response?.data)
+        setError(err.response?.data?.detail || 'Erreur lors de la création du tag.')
+      } else {
+        console.error(err)
+        setError('Erreur lors de la création du tag.')
+      }
     }
   }
 

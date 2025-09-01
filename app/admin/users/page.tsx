@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import axiosInstance from '@/lib/axiosInstance'
+import axios from 'axios'
 
 interface UserData {
   id: number
@@ -27,7 +28,12 @@ export default function AdminUserListPage() {
       try {
         const res = await axiosInstance.get('/custom-admin/users/')
         setUsers(res.data)
-      } catch (err: any) {
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          console.error(err.response?.data)
+        } else {
+          console.error(err)
+        }
         setError('Erreur lors du chargement des utilisateurs.')
       } finally {
         setLoading(false)

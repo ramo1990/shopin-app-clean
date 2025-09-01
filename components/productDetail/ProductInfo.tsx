@@ -222,7 +222,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
             <Truck className="text-gray-700" size={32} />
               <div>
                 <p className="text-sm font-semibold text-gray-800">Livraison gratuite</p>
-                <p className="text-xs text-gray-500">À partir de 50€ d'achat</p>
+                <p className="text-xs text-gray-500">À partir de 50€ d&apos;achat</p>
               </div>
             </div>
 

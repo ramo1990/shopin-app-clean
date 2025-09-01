@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import axiosInstance from '@/lib/axiosInstance'
+import Image from 'next/image'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
@@ -26,9 +27,13 @@ export default function AdminProductListPage() {
       try {
         const res = await axiosInstance.get('/custom-admin/products/')
         setProducts(res.data)
-      } catch (err: any) {
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error(err.message)
+        } else {
+          console.error("An unknown error occurred")
+        }
         setError('Erreur lors du chargement des produits.')
-        console.error(err)
       } finally {
         setLoading(false)
       }
@@ -91,7 +96,7 @@ export default function AdminProductListPage() {
                 >
                   <td className="p-3">
                     {prod.image ? (
-                      <img
+                      <Image
                         src={prod.image.startsWith('http') ? prod.image : `${API_URL}${prod.image}`}
                         alt={prod.title}
                         className="w-16 h-16 object-cover rounded-md border"

@@ -27,7 +27,7 @@ export default function CheckoutPage() {
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null)
   const isEditing = editingAddressId !== null
   const [showAllAddresses, setShowAllAddresses] = useState(false)
-  const [cartMerged, setCartMerged] = useState(false)
+  // const [cartMerged, setCartMerged] = useState(false)
 
   const [form, setForm] = useState({
     full_name: '',
@@ -62,10 +62,10 @@ export default function CheckoutPage() {
       const token = await refreshTokenIfNeeded()
       const anonymousUserId = localStorage.getItem('anonymous_user_id') // ou cookies si tu les lis comme ça
   
-      if (!token) {
-        setCartMerged(true)
-        return
-      }
+      // if (!token) {
+      //   setCartMerged(true)
+      //   return
+      // }
       
       if (anonymousUserId){
         try {
@@ -80,7 +80,7 @@ export default function CheckoutPage() {
           console.error("Erreur lors de la fusion du panier :", err)
         }
       }
-      setCartMerged(true)
+      // setCartMerged(true)
     }
     
       mergeCartIfNeeded()
@@ -166,7 +166,8 @@ export default function CheckoutPage() {
       let addressId = selectedAddressId
       // (Gère la création/modif d'adresse si nécessaire)
       if (showNewAddressForm) {
-        const { payment_method, ...addressOnly } = form
+        // const { payment_method, ...addressOnly } = form
+        const addressOnly = { ...form }
   
         if (isEditing && editingAddressId !== null) {
           // 🛠 Modification d'adresse
@@ -346,11 +347,8 @@ export default function CheckoutPage() {
                   </button>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => setShowNewAddressForm(true)}
-                  className="text-blue-600 hover:underline block mt-2"
-                >
+                <button type="button" onClick={() => setShowNewAddressForm(true)}
+                  className="text-blue-600 hover:underline block mt-2">
                   ➕ Ajouter une nouvelle adresse
                 </button>
               </div>

@@ -28,8 +28,12 @@ export default function NewOrderPage() {
     try {
       await axiosInstance.post('/custom-admin/orders/', form)
       router.push('/admin/orders')
-    } catch (err: any) {
-      console.error(err)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message)
+      } else {
+        console.error("An unknown error occurred")
+      }
       setError('Erreur lors de la création de la commande.')
     }
   }

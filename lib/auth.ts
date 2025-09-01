@@ -7,6 +7,7 @@
 // import axios from 'axios'
 // On utilise notre instance Axios personnalisée avec l'intercepteur de token
 import axiosPublic from "./axiosPublic"
+import type { AxiosError } from 'axios'
 
 
 const logoutUser = () => {
@@ -44,11 +45,12 @@ export const refreshTokenIfNeeded = async (): Promise<string | null> => {
 
       // On retourne le nouveau token
       return newAccessToken
-    } catch (refreshErr: any) {
-      const status = refreshErr?.response?.status;
-      const code = refreshErr?.response?.data?.code;
+    } catch (refreshErr: unknown) {
+      const err = refreshErr as AxiosError<{ code?:string }>
+      const status = err?.response?.status;
+      const code = err?.response?.data?.code;
       // Si le refresh échoue (ex: token expiré ou invalide), on affiche une erreur
-      console.error('Erreur lors du refresh token :', refreshErr)
+      console.error('Erreur lors du refresh token :', err)
 
       // Si le token de refresh est expiré ou invalide → logout
       if (status === 401 && code === 'token_not_valid') {
