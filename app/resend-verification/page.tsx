@@ -1,12 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+// import { useRouter } from "next/navigation"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 
 export default function ResendVerificationPage() {
-  const router = useRouter()
+  // const router = useRouter()
 
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -36,7 +36,7 @@ export default function ResendVerificationPage() {
       } else {
         setError(data.detail || "Une erreur est survenue.")
       }
-    } catch (err) {
+    } catch {
       setError("Erreur réseau ou serveur.")
     } finally {
       setLoading(false)
@@ -54,7 +54,7 @@ export default function ResendVerificationPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="username" className="block font-medium">
-              Nom d'utilisateur
+              Nom d&apos;utilisateur
             </label>
             <input
               id="username"

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import axiosInstance from '@/lib/axiosInstance'
+import Image from 'next/image'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
@@ -193,16 +194,21 @@ export default function EditProductPage() {
             file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
           {product.image && !imageFile && (
-            <img
+            <Image
               src={product.image.startsWith('http') ? product.image : `${API_URL}${product.image}`}
               alt={product.title}
+              width={128}
+              height={128}
               className="mt-3 w-32 h-32 object-cover rounded-lg border"
             />
           )}
           {imageFile && (
-            <img
+            <Image
+              loader={() => URL.createObjectURL(imageFile)}
               src={URL.createObjectURL(imageFile)}
               alt="Preview"
+              width={128}
+              height={128}
               className="mt-3 w-32 h-32 object-cover rounded-lg border"
             />
           )}

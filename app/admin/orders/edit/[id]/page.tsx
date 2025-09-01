@@ -46,8 +46,12 @@ export default function EditOrderPage() {
     try {
       await axiosInstance.put(`/custom-admin/orders/${id}/`, form)
       router.push('/admin/orders')
-    } catch (err: any) {
-      console.error(err)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message)
+      } else {
+        console.error('An unknown error occurred')
+      }
       setError('Erreur lors de la mise à jour.')
     }
   }

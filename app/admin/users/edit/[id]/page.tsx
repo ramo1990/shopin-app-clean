@@ -4,6 +4,8 @@ import { useRouter, useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import axiosInstance from '@/lib/axiosInstance'
+import axios from 'axios'
+
 
 interface FormValues {
   email: string
@@ -37,13 +39,30 @@ export default function EditUserPage() {
     try {
       await axiosInstance.put(`/custom-admin/users/${id}/`, data)
       router.push('/admin/users')
-    } catch (err: any) {
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error(err.response?.data)
+      } else {
+        console.error(err)
+      }
       alert('Erreur lors de la mise à jour.')
-      console.error(err.response?.data || err)
     }
   }
 
   if (loading) return <p className="text-gray-600 text-center py-6">Chargement...</p>
+
+  const fields: Array<{
+    name: keyof FormValues
+    label: string
+    type: string
+    required: boolean
+  }> = [
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'username', label: 'Nom d’utilisateur', type: 'text', required: true },
+    { name: 'first_name', label: 'Prénom', type: 'text', required: false },
+    { name: 'last_name', label: 'Nom', type: 'text', required: false },
+    { name: 'password', label: 'Nouveau mot de passe', type: 'password', required: false },
+  ]
 
   return (
     <div className="p-6 max-w-lg mx-auto">
@@ -51,20 +70,13 @@ export default function EditUserPage() {
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Modifier l’utilisateur</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        {[
-          { name: 'email', label: 'Email', type: 'email', required: true },
-          { name: 'username', label: 'Nom d’utilisateur', type: 'text', required: true },
-          { name: 'first_name', label: 'Prénom', type: 'text', required: false },
-          { name: 'last_name', label: 'Nom', type: 'text', required: false },
-          { name: 'password', label: 'Nouveau mot de passe (laisser vide pour garder l’actuel)', type: 'password', required: false },
-        ].map(({ name, label, type, required }) => (
+        {fields.map(({ name, label, type, required }) => (
           <div key={name} className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 mb-1">{label}</label>
             <input
               type={type}
-              {...register(name as any, { required: required && name !== 'password' })}
+              {...register(name, { required: required && name !== 'password' })}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-
             {errors[name as keyof FormValues] && (<p className="text-red-500 text-xs mt-1">Ce champ est requis</p>)}
           </div>
         ))}

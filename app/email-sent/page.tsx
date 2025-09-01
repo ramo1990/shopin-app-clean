@@ -6,7 +6,7 @@ export default function EmailSentPage() {
           <p className="text-gray-700">
             Un lien de vérification vous a été envoyé par email. Cliquez sur ce lien pour activer votre compte.
           </p>
-          <p className="text-sm text-gray-500 mt-4">N'oubliez pas de vérifier votre dossier spam.</p>
+          <p className="text-sm text-gray-500 mt-4">N&apos;oubliez pas de vérifier votre dossier spam.</p>
         </div>
       </div>
     )

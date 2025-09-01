@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import axiosInstance from '@/lib/axiosInstance'
-import Link from 'next/link'
+import Image from 'next/image'
+// import Link from 'next/link'
 
 interface Tag {
   id: number
@@ -62,7 +63,7 @@ export default function AdminTagsPage() {
                 <td className="px-4 py-3">{tag.slug}</td>
                 <td className="px-4 py-3 text-center">
                   {tag.image ? (
-                    <img
+                    <Image
                       src={tag.image.startsWith('http') ? tag.image : `${process.env.NEXT_PUBLIC_API_URL}${tag.image}`}
                       alt={tag.name}
                       className="w-12 h-12 object-cover rounded-md mx-auto"

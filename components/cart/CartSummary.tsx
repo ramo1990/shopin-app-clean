@@ -5,11 +5,13 @@ import { useCartContext } from '@/context/CartContext'
 import { useRouter } from 'next/navigation'
 import axiosInstance from '@/lib/axiosInstance'
 import { refreshTokenIfNeeded } from '@/lib/auth'
-import { useAuth } from '@/context/AuthContext'
+// import { useAuth } from '@/context/AuthContext'
+
 
 const CartSummary = () => {
-  const { cart, clearCart } = useCartContext()
-  const { user } = useAuth()
+  // const { cart, clearCart } = useCartContext()
+  const { cart } = useCartContext()
+  // const { user } = useAuth()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 

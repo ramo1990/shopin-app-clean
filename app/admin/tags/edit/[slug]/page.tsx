@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import axiosInstance from '@/lib/axiosInstance'
+import Image from 'next/image'
+import axios from 'axios'
+
 
 export default function EditTagPage() {
   const { slug } = useParams() as { slug: string }
@@ -38,9 +41,14 @@ export default function EditTagPage() {
     try {
       await axiosInstance.put(`/custom-admin/tags/${slug}/`, formData)
       router.push('/admin/tags')
-    } catch (err: any) {
-      console.error(err.response?.data)
-      setError('Erreur lors de la mise à jour.')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error(err.response?.data)
+        setError(err.response?.data?.detail || 'Erreur lors de la mise à jour.')
+      } else {
+        console.error(err)
+        setError('Erreur lors de la mise à jour.')
+      }
     }
   }
 
@@ -82,10 +90,12 @@ export default function EditTagPage() {
         {currentImage && !imageFile && (
           <div className="mt-3">
             <p className="text-sm text-gray-600 mb-1">Image actuelle :</p>
-            <img
+            <Image
               src={currentImage.startsWith('http') ? currentImage : `${process.env.NEXT_PUBLIC_API_URL}${currentImage}`}
               alt="Aperçu du tag"
-              className="w-32 h-32 object-cover rounded-lg border shadow-sm"/>
+              width={128}
+              height={128}
+              className="object-cover rounded-lg border shadow-sm"/>
           </div>
         )}
 

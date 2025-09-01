@@ -48,7 +48,7 @@ export default function ProductPageClient({ slug }: ProductPageClientProps) {
           
           setSimilarProducts(filtered)
         }
-      } catch (e) {
+      } catch {
         setError("Impossible de charger le produit.")
       } finally {
         setLoading(false)

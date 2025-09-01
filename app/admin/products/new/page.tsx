@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import axiosInstance from '@/lib/axiosInstance'
 
+
+interface Tag {
+  id: number
+  name: string
+  slug: string
+}
+
 export default function NewProductPage() {
   const router = useRouter()
   const [title, setTitle] = useState('')
@@ -12,7 +19,7 @@ export default function NewProductPage() {
   const [stock, setStock] = useState('')
   const [image, setImage] = useState<File | null>(null)
   const [tags, setTags] = useState<string[]>([])
-  const [allTags, setAllTags] = useState<any[]>([])
+  const [allTags, setAllTags] = useState<Tag[]>([])
 
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -23,7 +30,7 @@ export default function NewProductPage() {
         const res = await axiosInstance.get('/tags/')
         setAllTags(res.data)
       } catch (err) {
-        console.error('Erreur lors du chargement des tags')
+        console.error('Erreur lors du chargement des tags:', err)
       }
     }
     fetchTags()
@@ -46,9 +53,13 @@ export default function NewProductPage() {
       await axiosInstance.post('/custom-admin/products/', formData)
       setSuccess('Produit créé avec succès')
       router.push('/admin/products')
-    } catch (err: any) {
-      console.error(err)
-      setError(err?.response?.data?.detail || 'Erreur lors de la création du produit.')
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message)
+      } else {
+        console.error("An unknown error occurred")
+      }
+      setError('Erreur lors de la création du produit.')
     }
   }
 
