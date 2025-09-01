@@ -35,7 +35,7 @@ DEBUG = False
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    'shopin-hfc7.onrender.com',]
+    'shopin-nextjs.onrender.com',]
 
 # Application definition
 
