@@ -62,44 +62,64 @@ export default function ResetPasswordConfirmPage() {
 }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
-        <h2 className="text-xl font-semibold">Réinitialiser le mot de passe</h2>
+<div className='bg-gray-50 flex items-center justify-center min-h-screen px-4'>
+      <div className='bg-white shadow-xl rounded-2xl p-6 sm:p-10 max-w-sm w-full flex flex-col gap-6'>
+        <h2 className='text-3xl font-semibold text-center text-gray-900'>
+          Réinitialisation du mot de passe
+        </h2>
+        <p className="text-center text-gray-600 text-sm">
+          Choisis un nouveau mot de passe sécurisé.
+        </p>
 
         {success ? (
-          <p className="text-green-600 text-center">
-            Mot de passe modifié avec succès, 
-            {username && 
-            <>
-             pour <strong>{username}.</strong>
-            </>}. <br/>
-            <a href="/signin" className="underline text-blue-600">Connecte-toi ici</a>
-          </p>
+          <div className="text-green-600 text-sm text-center bg-green-50 border border-green-200 p-3 rounded-md">
+            Mot de passe modifié avec succès
+            {username && <> pour <strong>{username}</strong></>}. <br />
+            <a href="/signin" className="underline text-blue-600 hover:text-blue-800">
+              Connecte-toi ici
+            </a>
+          </div>
         ) : (
-          <>
+          <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
             <input
               type="password"
               placeholder="Nouveau mot de passe"
-              className="border px-4 py-2 w-full"
+              className="border border-gray-300 px-4 py-2 rounded-md text-sm"
               value={password1}
               onChange={(e) => setPassword1(e.target.value)}
               required
             />
             <input
               type="password"
-              placeholder="Nouveau mot de passe"
-              className="border px-4 py-2 w-full"
+              placeholder="Confirme le mot de passe"
+              className="border border-gray-300 px-4 py-2 rounded-md text-sm"
               value={password2}
               onChange={(e) => setPassword2(e.target.value)}
               required
             />
-            {error && <p className="text-red-600 text-sm">{error}</p>}
-          
-            <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded w-full hover:bg-blue-700 transition">
-              Valider</button>
-          </>
+
+            {error && (
+              <p className="text-red-500 text-sm bg-red-50 border border-red-200 px-3 py-2 rounded-md">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 rounded-md text-sm hover:bg-blue-700"
+            >
+              Valider
+            </button>
+          </form>
         )}
-      </form>
+
+        <p className="text-center text-sm text-gray-500">
+          Tu n’as pas de compte ?{" "}
+          <a href="/signup" className="text-blue-600 hover:underline font-medium">
+            Inscris-toi
+          </a>
+        </p>
+      </div>
     </div>
   )
 }
