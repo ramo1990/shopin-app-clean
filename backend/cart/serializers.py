@@ -12,3 +12,4 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ['id', 'product', 'title', 'image', 'price', 'quantity', 'anonymous_user_id']
+        read_only_fields = ['user']

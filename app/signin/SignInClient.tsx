@@ -26,6 +26,7 @@ const SignInPage = () => {
   const { login } = useAuth() // Récupère la fonction `login` depuis le contexte AuthProvider
   const searchParams = useSearchParams()
   const verified = searchParams.get("verified") === "true"
+  const next = searchParams.get("next") || "/"
   
   // Fonction appelée à la soumission du formulaire
   const handleLogin = async (e: React.FormEvent) => {
@@ -40,14 +41,14 @@ const SignInPage = () => {
       localStorage.setItem("refreshToken", refresh)
 
       // Ajout ici : stockage de l'email et du nom
-    localStorage.setItem("userEmail", user.email)
-    localStorage.setItem("userName", user.name)
+      localStorage.setItem("userEmail", user.email)
+      localStorage.setItem("userName", user.name)
 
       // Met à jour le contexte Auth avec le token et les infos utilisateur
       login(access, user) // passer le token ici, pas l'user
 
       setError("")  // Réinitialise les erreurs
-      router.push("/") // Redirige vers la page d’accueil après connexion réussie
+      router.push(next) // Redirige vers la page d’accueil après connexion réussie
 
     } catch (err: unknown) {
       const axiosError = err as AxiosError<{ code?: string }>

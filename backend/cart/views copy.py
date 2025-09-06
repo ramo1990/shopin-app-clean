@@ -1,8 +1,7 @@
 from rest_framework import viewsets
 from .models import *
 from .serializers import *
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
@@ -28,35 +27,55 @@ class CartItemViewSet(viewsets.ModelViewSet):
                 return CartItem.objects.filter(anonymous_user_id=anonymous_user_id)
             return CartItem.objects.none()
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
         # Si l'utilisateur est connecté, on lui associe le produit
-        user = self.request.user if self.request.user.is_authenticated else None
+        user = request.user if request.user.is_authenticated else None
+        data = request.data.copy()
 
         anonymous_user_id = (
-            self.request.data.get('anonymous_user_id')
-            or self.request.query_params.get('anonymous_user_id')
+            data.get('anonymous_user_id')
+            or request.query_params.get('anonymous_user_id')
             or str(uuid.uuid4()))
+        
         if user:
-            anonymous_user_id = None
-        elif not anonymous_user_id:
-            anonymous_user_id = str(uuid.uuid4())
+            data['user'] = user.id
+            data['anonymous_user_id'] = None
+        else:
+            data['anonymous_user_id'] = anonymous_user_id
 
         # Récupérer les données du produit et de la quantité
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
         product = serializer.validated_data['product']
         quantity = serializer.validated_data['quantity']
 
+        print("Ajout au panier - utilisateur :", user)
+        print("Produit :", product)
+        print("Quantité :", quantity)
+
         # Vérifie si un CartItem existe déjà pour ce produit et cet utilisateur (ou ID anonyme)
-        existing_item = CartItem.objects.filter(user=user, anonymous_user_id=anonymous_user_id, product=product).first()
+        existing_item = CartItem.objects.filter(
+            user=user, 
+            anonymous_user_id=None if user else anonymous_user_id, 
+            product=product).first()
         
         if existing_item:
             # Si oui, mets à jour la quantité
             existing_item.quantity += quantity
             existing_item.save()
-            response = Response({"message": "Quantité mise à jour dans le panier"}, status=status.HTTP_200_OK)
-        else:
-            # Sinon, crée l'élément normalement
-            cart_item = serializer.save(user=user, anonymous_user_id=anonymous_user_id)
-            response = Response(CartItemSerializer(cart_item).data, status=status.HTTP_201_CREATED)
+            return Response({"message": "Quantité mise à jour dans le panier"}, status=status.HTTP_200_OK)
+        
+        # Creation
+        instance= self.perform_create(serializer)
+        serializer = self.get_serializer(instance)
+        headers = self.get_success_headers(serializer.data)
+
+        response = Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        # else:
+        #     # Sinon, crée l'élément normalement
+        #     cart_item = serializer.save(user=user, anonymous_user_id=anonymous_user_id)
+        #     response = Response(CartItemSerializer(cart_item).data, status=status.HTTP_201_CREATED)
 
         # Si l'utilisateur est anonyme, on sauvegarde son anonymous_user_id dans les cookies
         if not user:
@@ -64,7 +83,14 @@ class CartItemViewSet(viewsets.ModelViewSet):
             # response.data = {"message": "Article ajouté au panier"}
         return response
 
+    def perform_create(self, serializer):
+        user = self.request.user if self.request.user.is_authenticated else None
+        anon_id = (
+            self.request.data.get('anonymous_user_id') or
+            self.request.query_params.get('anonymous_user_id'))
 
+        serializer.save(user=user, anonymous_user_id=None if user else anon_id)
+    
     def get_object(self):
         obj = super().get_object()
         user = self.request.user if self.request.user.is_authenticated else None
@@ -78,7 +104,6 @@ class CartItemViewSet(viewsets.ModelViewSet):
 
         return obj
     
-
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.delete()
@@ -95,6 +120,9 @@ class CartItemViewSet(viewsets.ModelViewSet):
         # Récupère les articles anonymes
         anonymous_items = CartItem.objects.filter(anonymous_user_id=anon_id)
 
+        print("➡️ Fusion du panier pour l'utilisateur :", request.user)
+        print("➡️ anonymous_user_id utilisé :", anon_id)
+        
         for item in anonymous_items:
             # Vérifie si un item identique existe déjà pour cet utilisateur
             existing = CartItem.objects.filter(user=request.user, product=item.product).first()
@@ -111,4 +139,4 @@ class CartItemViewSet(viewsets.ModelViewSet):
 
         items = CartItem.objects.filter(user=request.user)
         serialized_items = CartItemSerializer(items, many=True)
-        return Response({'message': 'Panier fusionné avec succès'}, status=status.HTTP_200_OK)
+        return Response(serialized_items.data, status=status.HTTP_200_OK)

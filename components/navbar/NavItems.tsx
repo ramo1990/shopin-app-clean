@@ -25,14 +25,19 @@ interface Props {
 
 const NavItems = ({ mobile = false, onLinkClick }: Props) => {
   const router = useRouter()
-  // Fonction appelée quand un lien est cliqué (ex: pour fermer le menu mobile)
+  const { cart, clearCart } = useCartContext()  // Accès au panier et à la fonction pour le vider
+  const {user, logout, loading } = useAuth()  // Infos utilisateur et méthodes d’auth
+  const [hydrated, setHydrated] = React.useState(false)
+
+  React.useEffect(() => {
+    setHydrated(true)
+  }, [])
+
+  if (!hydrated || loading) return null
+
   const handleClick = () => {
     if (onLinkClick) onLinkClick()
   };
-
-  const { cart, clearCart } = useCartContext()  // Accès au panier et à la fonction pour le vider
-  // const { wishlist } = useWishlist()
-  const {user, logout, loading } = useAuth()  // Infos utilisateur et méthodes d’auth
 
   const handleLogout = async () => {
     await logout()  // attend la déconnexion 
@@ -40,7 +45,7 @@ const NavItems = ({ mobile = false, onLinkClick }: Props) => {
     router.push("/") // ou /signin
   }
 
-  if (loading) return null // Pendant le chargement du contexte Auth, on n’affiche rien
+  // if (loading) return null // Pendant le chargement du contexte Auth, on n’affiche rien
 
   const firstName = user?.first_name || 'Utilisateur'; // Prénom par défaut
 

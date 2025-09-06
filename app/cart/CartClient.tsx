@@ -9,12 +9,13 @@ import { useEffect, useState } from 'react'
 
 
 const CartClient = () => {
-  const { cart } = useCartContext()
-  // const { data: session } = useSession()
+  const { cart, fetchCart } = useCartContext()
   const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
+    console.log('CartClient : fetchCart appelé');
     setHydrated(true)
+    fetchCart()
   }, [])
 
   // Loader de skeleton avant hydratation
@@ -33,6 +34,8 @@ const CartClient = () => {
       </div>
     )
   }
+
+  console.log('CartClient rendu - cart:', cart);
 
   // Panier vide
   if (cart.length === 0) {

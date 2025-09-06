@@ -141,11 +141,11 @@ env = environ.Env(
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Definition manuelle
-# DATABASES = {
-#     # 'default': {
-#     #     'ENGINE': 'django.db.backends.sqlite3',
-#     #     'NAME': BASE_DIR / 'db.sqlite3',
-#     # }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
 #         'NAME': env('DB_NAME'),
@@ -154,14 +154,14 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 #         'HOST': env('DB_HOST'),
 #         'PORT': env('DB_PORT'),
 #     }
-# }
-DATABASES = {
-    'default': dj_database_url.config(
-        default=env('DATABASE_URL'),  # Assure-toi que cette variable existe dans ton .env ou sur Render
-        conn_max_age=600,
-        ssl_require=True  # Render nécessite SSL
-    )
 }
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=env('DATABASE_URL'),  # Assure-toi que cette variable existe dans ton .env ou sur Render
+#         conn_max_age=600,
+#         ssl_require=True  # Render nécessite SSL
+#     )
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

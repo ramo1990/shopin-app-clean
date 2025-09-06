@@ -49,7 +49,7 @@ class CreateOrderView(APIView):
                 price=item.product.price
             )
 
-        cart_items.delete()  # vider le panier
+        # cart_items.delete()  # vider le panier
         return Response({"message": "Commande créée avec succès", "order_id": order.id, "payment_method": order.payment_method}, status=201)
 
 # detail de la commande: Ce code filtre la commande par user=request.user, donc un utilisateur ne peut pas voir les commandes d’un autre.

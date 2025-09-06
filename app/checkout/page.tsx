@@ -85,12 +85,15 @@ export default function CheckoutPage() {
       if (!token) return
 
       try {
-        const res = await axiosInstance.get(`/orders/${orderId}`, {
+        const res = await axiosInstance.get(`/orders/${orderId}/`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         setOrder(res.data)
       } catch (err) {
         console.error('Erreur chargement commande existante :', err)
+        // Supprimer orderId invalide
+        localStorage.removeItem('currentOrderId')
+        setOrder(null)
       }
     }
 
@@ -191,9 +194,7 @@ export default function CheckoutPage() {
         )
         setOrder(res.data)
       } else {
-        const res = await axiosInstance.post(
-          '/orders/',
-          {
+        const res = await axiosInstance.post('/orders/', {
             shipping_address_id: addressId,
             payment_method: form.payment_method,
           },
@@ -201,6 +202,7 @@ export default function CheckoutPage() {
         )
 
         setOrder(res.data)
+        console.log('Réponse création commande :', res.data)
         localStorage.setItem('currentOrderId', res.data.id.toString())
       }
     } catch (err: unknown) {
@@ -250,78 +252,92 @@ export default function CheckoutPage() {
               <p>Chargement des adresses...</p>
             ) : (
               <>
-                {addresses.length > 0 && (
-                  <div className="space-y-3 mb-4">
-                    {addresses
-                      .filter((addr) => showAllAddresses || addr.id === selectedAddressId)
-                      .map((addr) => (
-                        <div key={addr.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-2">
-                          <label className="flex items-start gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              name="shipping_address"
-                              value={addr.id}
-                              checked={selectedAddressId === addr.id}
-                              onChange={() => setSelectedAddressId(addr.id)}
-                            />
-                            <div>
-                              <p className="font-semibold">{addr.full_name}</p>
-                              <p>{addr.address}, {addr.city}</p>
-                              <p>{addr.postal_code}, {addr.country}</p>
-                              <p>Tél : {addr.phone}</p>
-                              {selectedAddressId === addr.id && (
-                                <p className="text-green-600 text-sm mt-2">📦 Livré à cette adresse</p>
-                              )}
-                            </div>
-                          </label>
-                          {showAllAddresses && (
-                            <div className="flex gap-2 ml-6">
-                              <button
-                                onClick={() => {
-                                  setEditingAddressId(addr.id)
-                                  setForm({
-                                    ...form,
-                                    full_name: addr.full_name,
-                                    address: addr.address,
-                                    city: addr.city,
-                                    postal_code: addr.postal_code,
-                                    country: addr.country,
-                                    phone: addr.phone,
-                                  })
-                                  setShowNewAddressForm(true)
-                                }}
-                                className="text-yellow-600 hover:underline text-sm"
-                              >
-                                ✏️ Modifier
-                              </button>
-                              <button
-                                onClick={() => handleDeleteAddress(addr.id)}
-                                className="text-red-600 hover:underline text-sm"
-                              >
-                                🗑 Supprimer
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    {addresses.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => setShowAllAddresses((prev) => !prev)}
-                        className="text-blue-600 hover:underline text-sm"
-                      >
-                        {showAllAddresses ? 'Masquer les autres adresses ▲' : 'Changer d’adresse ▼'}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setShowNewAddressForm(true)}
-                      className="text-blue-600 hover:underline text-sm block mt-2"
-                    >
-                      ➕ Ajouter une nouvelle adresse
-                    </button>
-                  </div>
-                )}
+                {addresses.length > 0 ? (
+  <div className="space-y-3 mb-4">
+    {addresses
+      .filter((addr) => showAllAddresses || addr.id === selectedAddressId)
+      .map((addr) => (
+        <div key={addr.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-2">
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="shipping_address"
+              value={addr.id}
+              checked={selectedAddressId === addr.id}
+              onChange={() => setSelectedAddressId(addr.id)}
+            />
+            <div>
+              <p className="font-semibold">{addr.full_name}</p>
+              <p>{addr.address}, {addr.city}</p>
+              <p>{addr.postal_code}, {addr.country}</p>
+              <p>Tél : {addr.phone}</p>
+              {selectedAddressId === addr.id && (
+                <p className="text-green-600 text-sm mt-2">📦 Livré à cette adresse</p>
+              )}
+            </div>
+          </label>
+          {showAllAddresses && (
+            <div className="flex gap-2 ml-6">
+              <button
+                onClick={() => {
+                  setEditingAddressId(addr.id)
+                  setForm({
+                    ...form,
+                    full_name: addr.full_name,
+                    address: addr.address,
+                    city: addr.city,
+                    postal_code: addr.postal_code,
+                    country: addr.country,
+                    phone: addr.phone,
+                  })
+                  setShowNewAddressForm(true)
+                }}
+                className="text-yellow-600 hover:underline text-sm"
+              >
+                ✏️ Modifier
+              </button>
+              <button
+                onClick={() => handleDeleteAddress(addr.id)}
+                className="text-red-600 hover:underline text-sm"
+              >
+                🗑 Supprimer
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+
+    {addresses.length > 1 && (
+      <button
+        type="button"
+        onClick={() => setShowAllAddresses((prev) => !prev)}
+        className="text-blue-600 hover:underline text-sm"
+      >
+        {showAllAddresses ? 'Masquer les autres adresses ▲' : 'Changer d’adresse ▼'}
+      </button>
+    )}
+
+    <button
+      type="button"
+      onClick={() => setShowNewAddressForm(true)}
+      className="text-blue-600 hover:underline text-sm block mt-2"
+    >
+      ➕ Ajouter une nouvelle adresse
+    </button>
+  </div>
+) : (
+  <div className="mb-4">
+    <p className="text-gray-600 text-sm">Aucune adresse enregistrée.</p>
+    <button
+      type="button"
+      onClick={() => setShowNewAddressForm(true)}
+      className="text-blue-600 hover:underline text-sm mt-2"
+    >
+      ➕ Ajouter votre première adresse
+    </button>
+  </div>
+)}
+
 
                 {/* 🎯 Paiement */}
                 <form onSubmit={handleSubmit} className="space-y-4 mt-6">
