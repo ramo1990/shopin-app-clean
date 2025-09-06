@@ -63,7 +63,6 @@ export default function OrderTracking() {
     }
 
     try {
-      // const res = await fetch(`http://127.0.0.1:8000/api/order-tracking/?order_id=${orderId}`) // local
       const res = await fetch(`${API_URL}/order-tracking/?order_id=${orderId}`)
       if (!res.ok) {
         if (res.status === 404) setError("Commande non trouvée.")

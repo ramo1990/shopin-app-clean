@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from cart.models import CartItem
 
 
 # mode de paiement
@@ -81,12 +82,12 @@ def stripe_webhook(request):
         print("⚠️ Signature non vérifiée:", e)
         return HttpResponse(status=400)
 
-    print("✅ Event reçu:", event["type"])  # ← Affiche le type d'événement
+    print("✅ Event reçu:", event["type"])
 
     # Quand un paiement est terminé
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        print("🧾 Session reçue :", session)  # ← Ajoute ça
+        print("🧾 Session reçue :", session)
 
         stripe_session_id = session.get('id')
         print("🔍 Recherche Order avec stripe_checkout_id =", stripe_session_id)
@@ -96,8 +97,12 @@ def stripe_webhook(request):
             order.payment_status = 'paid'
             order.save()
             print("✅ Commande mise à jour:", order.id)
+
+            # Suppression du panier
+            print("Suppression du panier de l'utilisateur:", order.user.email)
+            CartItem.objects.filter(user=order.user).delete()
+            print('Panier supprimé')
         except Order.DoesNotExist:
-            # pass  # ignore ou log
             print("❌ Aucune commande trouvée avec cet ID")
 
     return HttpResponse(status=200)

@@ -22,6 +22,25 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([])
   const { user } = useAuth()
   const [error, setError] = useState<string | null>(null)
+  const [isClientReady, setIsClientReady] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsClientReady(true)
+    }
+  }, [])
+
+  // useEffect(() => {
+  //   if (!isClientReady) return
+  //   fetchCart()
+  // }, [isClientReady])
+
+
+  // useEffect(() => {
+  //   if (!isClientReady) return
+  //   if (user) return
+  //   fetchCart()
+  // }, [user, isClientReady])
 
   // 🔄 Crée un ID anonyme unique si l'utilisateur n'est pas connecté
   useEffect(() => {
@@ -34,34 +53,63 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user])
 
+  // useEffect(() => {
+  //   fetchCart()
+  // }, [])  
+
   // ✅ Fetch panier (connecté ou non)
+  const [isFetching, setIsFetching] = useState(false)
+
   const fetchCart = async () => {
+    if (typeof window === 'undefined') return
+    if (isFetching) return
+
     try {
+      setIsFetching(true)
+      console.log('→ fetchCart appelé')
+      console.log('fetchCart appelé, user:', user)
+
       const token = await refreshTokenIfNeeded()
+      console.log('Token utilisé pour fetchCart:', token)
+
       const headers: Record<string, string> = {}
       let url = 'cart/'
 
-      if (token) {
+      if (user) {
+          // 🛑 Si l'utilisateur est connecté mais token manquant → ne rien faire
+        if (!token) {
+          console.warn('Utilisateur connecté mais pas de token : fetchCart annulé')
+          return
+        }
         headers['Authorization'] = `Bearer ${token}`
       } else {
+        // Mode anonyme
         const anonId = localStorage.getItem('anonymous_user_id')
-        if (anonId) {
-          url += `?anonymous_user_id=${anonId}`
+        if (!anonId) {
+          console.warn('Pas d\'anonymous_user_id, fetchCart annulé')
+          return
         }
+        url += `?anonymous_user_id=${anonId}`
       }
 
       const res = await axiosInstance.get(url, { headers })
       setCart(res.data)
+      console.log('Panier chargé:', res.data)
     } catch (err) {
       console.error('Erreur de chargement du panier :', err)
       setCart([])
+    } finally {
+      setIsFetching(false)
     }
   }
 
   useEffect(() => {
+    if (isClientReady)
     fetchCart()
-  }, [user]) // refetch panier si user change
+  }, [isClientReady ,user]) // refetch panier si user change
 
+  console.log('Panier avant fusion :', cart)
+  
   // Fusion automatique du panier anonyme après login
   useEffect(() => {
     const mergeCartAfterLogin = async () => {
@@ -70,7 +118,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (!token || !anonId) return
 
       try {
-        await axiosInstance.post(
+        const res = await axiosInstance.post(
           'cart/merge/',
           { anonymous_user_id: anonId },
           {
@@ -82,6 +130,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         )
         localStorage.removeItem('anonymous_user_id')
         console.log('Panier anonyme fusionné avec succès')
+
+        // setTimeout(() => {
+        //   fetchCart()
+        // }, 1000)
+        
         await fetchCart()
       } catch (err) {
         console.error('Erreur fusion panier dans CartContext :', err)
@@ -128,7 +181,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         await axiosInstance.post('cart/', data, { headers })
       }
 
-      await fetchCart()
+      setTimeout(() => {
+        fetchCart()
+      }, 100)
+      
+      // await fetchCart()
       console.log('Panier rechargé', cart)
     } catch (err) {
       setError("Erreur lors de l'ajout au panier")
