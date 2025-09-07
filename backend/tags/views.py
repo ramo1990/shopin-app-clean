@@ -7,7 +7,7 @@ from products.models import Product
 from products.serializers import ProductSerializer
 
 class TagListAPIView(ListAPIView):
-    queryset = Tag.objects.all()
+    queryset = Tag.objects.filter(parent__isnull=True)
     serializer_class = TagSerializer
     permission_classes = [AllowAny]
 

@@ -77,7 +77,6 @@ export async function getProduct(slug: string) {
 // Récupérer une category par son slug
 export async function getCategory(slug: string) {
     try {
-    //   const response = await fetch(`http://127.0.0.1:8000/api/tags/${slug}/`, { // local
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tags/${slug}/`, {
         cache: 'no-store',
       });

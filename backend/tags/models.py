@@ -10,7 +10,7 @@ class Tag(models.Model):
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
     created_by = models.ForeignKey(CustomUser, related_name='tags_created', on_delete=models.SET_NULL, null=True, blank=True)
     updated_by = models.ForeignKey(CustomUser, related_name='tags_updated', on_delete=models.SET_NULL, null=True, blank=True)
-
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, related_name='subcategories', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
