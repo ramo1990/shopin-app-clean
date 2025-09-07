@@ -5,6 +5,7 @@ import { getFullImageUrl } from '@/lib/getFullImageUrl';
 import Link from "next/link"
 import { Product } from '@/lib/types';
 import { getCategory } from '@/lib/api';
+import Image from 'next/image';
 
 
 interface SubCategory {
@@ -82,7 +83,7 @@ const CategoryPage = async ({ params }:  CategoryPageProps) => {
             {category.subcategories.map((sub) => (
               <Link key={sub.id} href={`/categories/${sub.slug}`}>
                 <div className="border rounded-lg p-3 text-center hover:bg-gray-100 transition cursor-pointer">
-                  <img
+                  <Image
                     src={getFullImageUrl(sub.image)}
                     alt={sub.name}
                     className="w-24 h-24 object-cover mx-auto mb-2 rounded"

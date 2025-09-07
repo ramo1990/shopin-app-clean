@@ -16,7 +16,7 @@ const CartClient = () => {
     console.log('CartClient : fetchCart appelé');
     setHydrated(true)
     fetchCart()
-  }, [])
+  }, [fetchCart])
 
   // Loader de skeleton avant hydratation
   if (!hydrated){
