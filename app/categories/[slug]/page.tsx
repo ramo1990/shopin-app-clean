@@ -73,6 +73,17 @@ const CategoryPage = async ({ params }:  CategoryPageProps) => {
         {slug}
       </h1>
 
+      {/* Boutons pour autres catégories */}
+      <div className='flex flex-wrap justify-center gap-4 mb-10'>
+        {categories.filter(cat => cat.slug !==slug).map(cat => (
+          <CategoryBtn
+            key={cat.id}
+            name={cat.name}
+            imageUrl={getFullImageUrl(cat.image)} 
+          />
+        ))}
+      </div>
+
       {/* Sous-catégories */}
       {category && category.subcategories && category.subcategories.length > 0 && (
         <div className="mb-10">
@@ -86,7 +97,9 @@ const CategoryPage = async ({ params }:  CategoryPageProps) => {
                   <Image
                     src={getFullImageUrl(sub.image)}
                     alt={sub.name}
-                    className="w-24 h-24 object-cover mx-auto mb-2 rounded"
+                    width={96}
+                    height={96}
+                    className="object-cover mx-auto mb-2 rounded"
                   />
                   <p className="text-sm font-medium">{sub.name}</p>
                 </div>
@@ -96,19 +109,8 @@ const CategoryPage = async ({ params }:  CategoryPageProps) => {
         </div>
       )}
 
-      {/* Boutons pour autres catégories */}
-      <div className='flex flex-wrap justify-center gap-4 mb-10'>
-        {categories.map(cat => (
-          <CategoryBtn
-            key={cat.id}
-            name={cat.name}
-            imageUrl={getFullImageUrl(cat.image)} 
-          />
-        ))}
-      </div>
-
       {/* Produits de la catégorie */}
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'>
+      <div className='flex flex-wrap justify-center gap-4'>
         {products.length === 0 ? (
           <p className="text-center text-gray-500 col-span-full">
             Aucun produit trouvé pour cette catégorie.
@@ -116,7 +118,7 @@ const CategoryPage = async ({ params }:  CategoryPageProps) => {
         ) : (
           products.map(product => (
             <Link key={product.id} href={`/products/${product.slug}`}>
-              <ProductCard /*key={product.id}*/ product={product} />
+              <ProductCard product={product} />
             </Link>
           ))
         )}

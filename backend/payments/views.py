@@ -16,23 +16,35 @@ class CreateCheckoutSessionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, order_id):
+        # 1. Lecture des frais de livraison
+        delivery_cost = request.data.get("delivery_cost", 0)
+        try:
+            delivery_cost = float(delivery_cost)
+        except (ValueError, TypeError):
+            delivery_cost = 0
+
         try:
             order = Order.objects.get(id=order_id, user=request.user)
         except Order.DoesNotExist:
             return Response({"error": "Commande non trouvée"}, status=status.HTTP_404_NOT_FOUND)
 
+        # 2. Calcul du montant total à payer (commande + livraison)
+        total_amount = float(order.total) + delivery_cost
+        print(f"🧾 Montant total à payer (commande + livraison) : {total_amount} FCFA")
+
+        # 3. URLs de redirection
         success_url = f'{settings.FRONTEND_URL}/confirmation/{order.id}'
         cancel_url = f'{settings.FRONTEND_URL}/cancel'
         print("🔙 cancel_url:", cancel_url)
         # cancel_url = request.build_absolute_uri(f'/payment/{order.id}')
 
-        # creation de la section stripe
+        # 4. creation de la section stripe
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
-                    'currency': 'eur',
-                    'unit_amount': int(order.total * 100),  # en centimes
+                    'currency': 'xof',
+                    'unit_amount': int(total_amount),  # en centimes
                     'product_data': {'name': f'Commande #{order.id}'},
                 },
                 'quantity': 1,
@@ -41,6 +53,8 @@ class CreateCheckoutSessionView(APIView):
             success_url=success_url,
             cancel_url=cancel_url,
         )
+
+        # 5. Sauvegarde de l'ID de la session
         order.stripe_checkout_id = session.id
         order.save()
 

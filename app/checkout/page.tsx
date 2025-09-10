@@ -25,6 +25,7 @@ export default function CheckoutPage() {
   const [order, setOrder] = useState<OrderType | null>(null)
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null)
   const [showAllAddresses, setShowAllAddresses] = useState(false)
+  const [deliveryMethod, setDeliveryMethod] = useState<'standard' | 'express'>('standard')
 
   const [form, setForm] = useState({
     full_name: '',
@@ -33,7 +34,8 @@ export default function CheckoutPage() {
     postal_code: '',
     country: '',
     phone: '',
-    payment_method: 'cod',
+    payment_method: '',
+    // payment_method: 'cod',// select mode de paiement par default
   })
 
   const modalRef = useRef<HTMLDivElement | null>(null)
@@ -145,8 +147,10 @@ export default function CheckoutPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
-    if (name === 'payment_method') {
+    if (name === 'payment_method' && value !=='') {
       updatePaymentMethod(value)
+      // setOrder((prev) => prev ? { ...prev, payment_method: value } : prev)
+      // if (order) updatePaymentMethod(value)
     }
   }
 
@@ -189,6 +193,7 @@ export default function CheckoutPage() {
           {
             shipping_address_id: addressId,
             payment_method: form.payment_method,
+            shipping_method: deliveryMethod,
           },
           { headers: { Authorization: `Bearer ${token}` } }
         )
@@ -197,6 +202,7 @@ export default function CheckoutPage() {
         const res = await axiosInstance.post('/orders/', {
             shipping_address_id: addressId,
             payment_method: form.payment_method,
+            shipping_method: deliveryMethod,
           },
           { headers: { Authorization: `Bearer ${token}` } }
         )
@@ -237,6 +243,15 @@ export default function CheckoutPage() {
     { value: 'paypal', label: 'PayPal 🅿️' },
   ]
 
+  const calculateDeliveryCost = () => {
+    if (deliveryMethod === 'standard') return 0
+    if (!order) return 0
+    return parseFloat(order.total) < 20000 ? 2000 : 0
+  }
+  const deliveryCost = calculateDeliveryCost()
+  const totalWithDelivery = order ? parseFloat(order.total) + deliveryCost : 0
+
+  
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold text-gray-900 mb-10 text-center md:text-left">
@@ -253,93 +268,119 @@ export default function CheckoutPage() {
             ) : (
               <>
                 {addresses.length > 0 ? (
-  <div className="space-y-3 mb-4">
-    {addresses
-      .filter((addr) => showAllAddresses || addr.id === selectedAddressId)
-      .map((addr) => (
-        <div key={addr.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-2">
-          <label className="flex items-start gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="shipping_address"
-              value={addr.id}
-              checked={selectedAddressId === addr.id}
-              onChange={() => setSelectedAddressId(addr.id)}
-            />
-            <div>
-              <p className="font-semibold">{addr.full_name}</p>
-              <p>{addr.address}, {addr.city}</p>
-              <p>{addr.postal_code}, {addr.country}</p>
-              <p>Tél : {addr.phone}</p>
-              {selectedAddressId === addr.id && (
-                <p className="text-green-600 text-sm mt-2">📦 Livré à cette adresse</p>
+                <div className="space-y-3 mb-4">
+                  {addresses
+                    .filter((addr) => showAllAddresses || addr.id === selectedAddressId)
+                    .map((addr) => (
+                      <div key={addr.id} className="border rounded-lg p-4 bg-white shadow-sm space-y-2">
+                        <label className="flex items-start gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="shipping_address"
+                            value={addr.id}
+                            checked={selectedAddressId === addr.id}
+                            onChange={() => setSelectedAddressId(addr.id)}
+                          />
+                          <div>
+                            <p className="font-semibold">{addr.full_name}</p>
+                            <p>{addr.address}, {addr.city}</p>
+                            <p>{addr.postal_code}, {addr.country}</p>
+                            <p>Tél : {addr.phone}</p>
+                            {selectedAddressId === addr.id && (
+                              <p className="text-green-600 text-sm mt-2">📦 Livré à cette adresse</p>
+                            )}
+                          </div>
+                        </label>
+                        {showAllAddresses && (
+                          <div className="flex gap-2 ml-6">
+                            <button
+                              onClick={() => {
+                                setEditingAddressId(addr.id)
+                                setForm({
+                                  ...form,
+                                  full_name: addr.full_name,
+                                  address: addr.address,
+                                  city: addr.city,
+                                  postal_code: addr.postal_code,
+                                  country: addr.country,
+                                  phone: addr.phone,
+                                })
+                                setShowNewAddressForm(true)
+                              }}
+                              className="text-yellow-600 hover:underline text-sm"
+                            >
+                              ✏️ Modifier
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAddress(addr.id)}
+                              className="text-red-600 hover:underline text-sm"
+                            >
+                              🗑 Supprimer
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                  {addresses.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllAddresses((prev) => !prev)}
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      {showAllAddresses ? 'Masquer les autres adresses ▲' : 'Changer d’adresse ▼'}
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setShowNewAddressForm(true)}
+                    className="text-blue-600 hover:underline text-sm block mt-2"
+                  >
+                    ➕ Ajouter une nouvelle adresse
+                  </button>
+                </div>
+              ) : (
+                <div className="mb-4">
+                  <p className="text-gray-600 text-sm">Aucune adresse enregistrée.</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewAddressForm(true)}
+                    className="text-blue-600 hover:underline text-sm mt-2"
+                  >
+                    ➕ Ajouter votre première adresse
+                  </button>
+                </div>
               )}
-            </div>
-          </label>
-          {showAllAddresses && (
-            <div className="flex gap-2 ml-6">
-              <button
-                onClick={() => {
-                  setEditingAddressId(addr.id)
-                  setForm({
-                    ...form,
-                    full_name: addr.full_name,
-                    address: addr.address,
-                    city: addr.city,
-                    postal_code: addr.postal_code,
-                    country: addr.country,
-                    phone: addr.phone,
-                  })
-                  setShowNewAddressForm(true)
-                }}
-                className="text-yellow-600 hover:underline text-sm"
-              >
-                ✏️ Modifier
-              </button>
-              <button
-                onClick={() => handleDeleteAddress(addr.id)}
-                className="text-red-600 hover:underline text-sm"
-              >
-                🗑 Supprimer
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
 
-    {addresses.length > 1 && (
-      <button
-        type="button"
-        onClick={() => setShowAllAddresses((prev) => !prev)}
-        className="text-blue-600 hover:underline text-sm"
-      >
-        {showAllAddresses ? 'Masquer les autres adresses ▲' : 'Changer d’adresse ▼'}
-      </button>
-    )}
+                {/* mode de livraison */}
+              <div className="mb-4">
+                <p className="font-semibold">Mode de livraison</p>
+                <label className="block mt-2">
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="standard"
+                    checked={deliveryMethod === 'standard'}
+                    onChange={() => setDeliveryMethod('standard')}
+                    className="mr-2"
+                  />
+                  Livraison standard (15 jours) – Gratuit
+                </label>
+                <label className="block mt-2">
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="express"
+                    checked={deliveryMethod === 'express'}
+                    onChange={() => setDeliveryMethod('express')}
+                    className="mr-2"
+                  />
+                  Livraison express (3 jours) – {parseFloat(order?.total || '0') < 20000 ? '2000 Fcfa' : 'Gratuit'}
+                </label>
+              </div>
 
-    <button
-      type="button"
-      onClick={() => setShowNewAddressForm(true)}
-      className="text-blue-600 hover:underline text-sm block mt-2"
-    >
-      ➕ Ajouter une nouvelle adresse
-    </button>
-  </div>
-) : (
-  <div className="mb-4">
-    <p className="text-gray-600 text-sm">Aucune adresse enregistrée.</p>
-    <button
-      type="button"
-      onClick={() => setShowNewAddressForm(true)}
-      className="text-blue-600 hover:underline text-sm mt-2"
-    >
-      ➕ Ajouter votre première adresse
-    </button>
-  </div>
-)}
-
-
-                {/* 🎯 Paiement */}
+                {/* mode de Paiement */}
                 <form onSubmit={handleSubmit} className="space-y-4 mt-6">
                   <h3 className="font-semibold mb-2">Mode de paiement</h3>
                   {paymentMethods.map((method) => (
@@ -357,6 +398,7 @@ export default function CheckoutPage() {
                         value={method.value}
                         checked={form.payment_method === method.value}
                         onChange={handleChange}
+                        required
                       />
                       <span>{method.label}</span>
                     </label>
@@ -379,26 +421,38 @@ export default function CheckoutPage() {
           <h2 className="text-xl font-semibold mb-4">Paiement</h2>
           {order ? (
             <>
-              <p className="mb-2">Commande #{order.id}</p>
+              {/* <p className="mb-2">Commande #{order.id}</p> */}
+
+              {/* mode de paiement */}
+              <div className='mb-4 space-y-1'>
+                <p>Sous-total : {order.total} Fcfa</p>
+                <p>Livraison : {deliveryCost === 0 ? 'Gratuit' : `${deliveryCost} Fcfa`}</p>
+                <p className="font-semibold text-lg mb-4">
+                  Total à payer: {totalWithDelivery} Fcfa
+                </p>
+              </div>
+
               {order.payment_method && (
                 <>
-                  <p className="font-semibold mb-4">
-                    Total : {order.payment_method === 'cod' ? '2.00 € (Caution)' : `${order.total} €`}
-                  </p>
-
                   {order.payment_method === 'cod' && (
                     <p className="text-green-700 font-semibold mb-4">
-                      Paiement à la livraison sélectionné. Une caution de 2€ est demandée.
+                      Paiement à la livraison sélectionné. Une caution de 2OOO Fcfa est demandée.
                     </p>
                   )}
 
-                  {order.payment_method === 'card' && (
-                    <StripePayment amount={parseFloat(order.total)} orderId={order.id} />
+                  {order.payment_method === 'card' && form.payment_method === 'card' && (
+                    <StripePayment orderId={order.id} deliveryCost={deliveryCost} total={parseFloat(order.total)}/>
                   )}
 
                   {order.payment_method === 'paypal' && (
                     <p className="text-blue-600 font-semibold mb-4">
                       Paiement PayPal sélectionné. (Composant à venir)
+                    </p>
+                  )}
+                
+                  {!order.payment_method && (
+                    <p className="text-gray-500 italic">
+                      Veuillez sélectionner un mode de paiement ci-dessus.
                     </p>
                   )}
                 </>

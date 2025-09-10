@@ -20,7 +20,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([])
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [isClientReady, setIsClientReady] = useState(false)
 
@@ -29,18 +29,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       setIsClientReady(true)
     }
   }, [])
-
-  // useEffect(() => {
-  //   if (!isClientReady) return
-  //   fetchCart()
-  // }, [isClientReady])
-
-
-  // useEffect(() => {
-  //   if (!isClientReady) return
-  //   if (user) return
-  //   fetchCart()
-  // }, [user, isClientReady])
 
   // 🔄 Crée un ID anonyme unique si l'utilisateur n'est pas connecté
   useEffect(() => {
@@ -51,18 +39,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('anonymous_user_id', anonId)
       }
     }
-  }, [user])
-
-  // useEffect(() => {
-  //   fetchCart()
-  // }, [])  
+  }, [user]) 
 
   // ✅ Fetch panier (connecté ou non)
   const [isFetching, setIsFetching] = useState(false)
 
   const fetchCart = async () => {
+    console.log("🔄 Tentative de fetchCart");
     if (typeof window === 'undefined') return
-    if (isFetching) return
+    if (isFetching) {
+      console.log("⏳ fetchCart annulé : déjà en cours");
+      return
+    }
+    if (authLoading) {
+      console.log("⏳ fetchCart annulé : authLoading en cours");
+      return
+    }
 
     try {
       setIsFetching(true)
@@ -104,10 +96,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }
 
   useEffect(() => {
-    if (isClientReady)
-    fetchCart()
-  }, [isClientReady ,user]) // refetch panier si user change
-
+    if (isClientReady && !authLoading) {
+      fetchCart()
+    }
+  }, [isClientReady ,user, authLoading]) // refetch panier si user change
+  
   console.log('Panier avant fusion :', cart)
   
   // Fusion automatique du panier anonyme après login

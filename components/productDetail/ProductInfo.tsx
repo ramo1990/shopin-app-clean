@@ -11,6 +11,7 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Pagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/pagination'
+import { useRouter } from 'next/navigation'
 
 
 interface ProductInfoProps { 
@@ -29,6 +30,7 @@ interface ProductInfoProps {
 
 const ProductInfo = ({ product }: ProductInfoProps) => {
   const { addToCart } = useCartContext()
+  const router = useRouter()
   const [hydrated, setHydrated] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>("")
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
@@ -66,6 +68,19 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
   const isAvailable = selectedVariant?.available ?? product.available
   const displayedColor = selectedVariant?.color || "N/A"
   const displayedSize = selectedVariant?.size || "N/A"
+
+  const handleBuyNow = async () => {
+    await addToCart({
+      product_id: product.id,
+      title: displayedTitle,
+      price: displayedPrice,
+      image: displayedImage || "/image_default.jpg",
+      quantity: 1,
+      variant_id: selectedVariant?.id,
+    })
+
+    router.push('/cart')
+  }
 
   return (
     <section className='bg-gray-50 py-10 px-4 sm:px-8 md:px-12 lg:px-20'>
@@ -214,6 +229,13 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
             >
               Ajouter au panier
             </Button>
+
+            <Button
+        className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition text-sm"
+        onClick={handleBuyNow}
+      >
+        Acheter
+      </Button>
           </div>
 
           {/* Avantages (livraison, retour, paiement) */}

@@ -9,14 +9,13 @@ import { useEffect, useState } from 'react'
 
 
 const CartClient = () => {
-  const { cart, fetchCart } = useCartContext()
+  const { cart } = useCartContext()
   const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
     console.log('CartClient : fetchCart appelé');
     setHydrated(true)
-    fetchCart()
-  }, [fetchCart])
+  }, [])
 
   // Loader de skeleton avant hydratation
   if (!hydrated){
