@@ -23,8 +23,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     shipping_address = ShippingAddressSerializer(read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
-    # estimated_delivery = serializers.SerializerMethodField()
-
+    shipping_method = serializers.CharField()  
+     
     class Meta:
         model = Order
         fields = '__all__'

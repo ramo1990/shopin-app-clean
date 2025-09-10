@@ -28,7 +28,7 @@ export default function StripePayment({ orderId, amount }: { orderId: number; am
   
     return (
       <>
-        <p className="mb-2">Total à payer : {amount.toFixed(2)} €</p>
+        {/* <p className="mb-2">Total à payer : {amount.toFixed(2)} €</p> */}
         <button
           onClick={handleCheckout}
           className="bg-blue-600 text-white px-4 py-2 rounded"

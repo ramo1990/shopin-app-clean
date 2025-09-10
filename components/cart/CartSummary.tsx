@@ -9,13 +9,16 @@ import { refreshTokenIfNeeded } from '@/lib/auth'
 
 
 const CartSummary = () => {
-  // const { cart, clearCart } = useCartContext()
   const { cart } = useCartContext()
   // const { user } = useAuth()
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 
   const subtotal = cart.reduce((acc, item) => acc + parseFloat(item.price) * item.quantity, 0)
+
+  // Calcul frais de livraison selon le montant
+  const deliveryStandardCost = 0 // Gratuit
+  const deliveryExpressCost = subtotal < 20000 ? 2000 : 0
   const estimatedTax = subtotal * 0.05
   const total = subtotal + estimatedTax
 
