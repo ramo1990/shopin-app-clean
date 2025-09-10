@@ -425,7 +425,7 @@ export default function CheckoutPage() {
 
               {/* mode de paiement */}
               <div className='mb-4 space-y-1'>
-                <p>Sous-total : {order.total}</p>
+                <p>Sous-total : {order.total} Fcfa</p>
                 <p>Livraison : {deliveryCost === 0 ? 'Gratuit' : `${deliveryCost} Fcfa`}</p>
                 <p className="font-semibold text-lg mb-4">
                   Total à payer: {totalWithDelivery} Fcfa
@@ -441,7 +441,7 @@ export default function CheckoutPage() {
                   )}
 
                   {order.payment_method === 'card' && form.payment_method === 'card' && (
-                    <StripePayment amount={totalWithDelivery} orderId={order.id} />
+                    <StripePayment orderId={order.id} deliveryCost={deliveryCost} total={parseFloat(order.total)}/>
                   )}
 
                   {order.payment_method === 'paypal' && (

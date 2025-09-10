@@ -7,7 +7,13 @@ import { refreshTokenIfNeeded } from '@/lib/auth'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
-export default function StripePayment({ orderId, amount }: { orderId: number; amount:number }) {
+interface StripePaymentProps {
+  orderId: number
+  deliveryCost: number
+  total: number 
+}
+
+export default function StripePayment({ orderId, deliveryCost, total }: StripePaymentProps) {
     const handleCheckout = async () => {
       const stripe = await stripePromise
       const token = await refreshTokenIfNeeded()
@@ -17,7 +23,9 @@ export default function StripePayment({ orderId, amount }: { orderId: number; am
         return
       }
 
-      const res = await axiosInstance.post(`/checkout-session/${orderId}/`, {},{
+      const res = await axiosInstance.post(
+        `/checkout-session/${orderId}/`, 
+        {delivery_cost: deliveryCost}, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -25,16 +33,23 @@ export default function StripePayment({ orderId, amount }: { orderId: number; am
       const { sessionId } = res.data
       stripe?.redirectToCheckout({ sessionId })
     }
-  
+    
+    const totalWithDelivery = total + deliveryCost
+    const isBelowMinimum = totalWithDelivery < 500
+
     return (
       <>
-        {/* <p className="mb-2">Total à payer : {amount.toFixed(2)} €</p> */}
         <button
           onClick={handleCheckout}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
+          className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50" disabled={isBelowMinimum}>
           Payer par carte
         </button>
+
+        {isBelowMinimum && (
+          <p className='text-red-500 text-sm mt-2'>
+            Le montant minimum pour un paiement par carte est de 500 FCFA.
+          </p>
+        )}
       </>
     )
   }
