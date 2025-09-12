@@ -24,8 +24,13 @@ class OrderSerializer(serializers.ModelSerializer):
     shipping_address = ShippingAddressSerializer(read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
     shipping_method = serializers.CharField()  
+    delivery_fee = serializers.SerializerMethodField()
+    grand_total = serializers.DecimalField(read_only=True, max_digits=10, decimal_places=2)
+    
+    def get_delivery_fee(self, obj):
+        return float(obj.calculate_delivery_fee())
      
     class Meta:
         model = Order
         fields = '__all__'
-        read_only_fields = ['user', 'total', 'payment_status', 'created_at']
+        read_only_fields = ['user', 'total','grand_total', 'payment_status', 'created_at']

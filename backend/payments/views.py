@@ -38,6 +38,10 @@ class CreateCheckoutSessionView(APIView):
         print("🔙 cancel_url:", cancel_url)
         # cancel_url = request.build_absolute_uri(f'/payment/{order.id}')
 
+        # ✅ METTRE À JOUR LE STATUT À 'pending'
+        order.status = 'pending'
+        order.save()
+
         # 4. creation de la section stripe
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -109,6 +113,7 @@ def stripe_webhook(request):
         try:
             order = Order.objects.get(stripe_checkout_id=stripe_session_id)
             order.payment_status = 'paid'
+            order.status = 'paid'
             order.save()
             print("✅ Commande mise à jour:", order.id)
 

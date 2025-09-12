@@ -22,6 +22,7 @@ class CreateOrderView(APIView):
         print("Données reçues:", request.data)
         shipping_address_id = request.data.get('shipping_address_id')
         payment_method = request.data.get('payment_method', 'card')
+        shipping_method = request.data.get('shipping_method', 'standard')
 
         if not shipping_address_id:
             return Response({"error": "Adresse de livraison requise"}, status=400)
@@ -38,19 +39,56 @@ class CreateOrderView(APIView):
 
         total = sum(item.product.price * item.quantity for item in cart_items)
 
+        # Vérifie s’il existe une commande "draft" pour l’utilisateur
+        order, created = Order.objects.get_or_create(
+            user=request.user,
+            status='draft',
+            defaults={
+                'total': total,
+                'shipping_address': shipping_address,
+                'shipping_method': shipping_method,
+                'payment_method': payment_method,
+            }
+        )
+        if not created:
+            # Mettre à jour les infos si la commande existe déjà
+            order.total = total
+            order.shipping_address = shipping_address
+            order.shipping_method = shipping_method
+            order.payment_method = payment_method
+
+            # Supprimer les anciens articles
+            order.items.all().delete()
+
         # Crée la commande avec l’adresse et le moyen de payment
-        order = Order.objects.create(user=request.user, total=total, shipping_address=shipping_address, payment_method=payment_method)
+        # order = Order.objects.create(user=request.user, 
+        #                              total=total, 
+        #                              shipping_address=shipping_address,
+        #                              shipping_method=shipping_method, 
+        #                              payment_method=payment_method)
 
         for item in cart_items:
             OrderItem.objects.create(
                 order=order,
                 product=item.product,
+                name=item.product.title,
                 quantity=item.quantity,
                 price=item.product.price
+                # created_by=request.CustomUser
             )
 
-        # cart_items.delete()  # vider le panier
-        return Response({"message": "Commande créée avec succès", "order_id": order.id, "payment_method": order.payment_method}, status=201)
+        # Recalculer les frais et le total final
+        order.grand_total = order.total + order.calculate_delivery_fee()
+        order.save()
+
+        return Response({
+            "message": "Commande créée avec succès", 
+            "order_id": order.id, 
+            "payment_method": order.payment_method,
+            "shipping_method": order.shipping_method,
+            "delivery_fee": float(order.calculate_delivery_fee()),
+            "grand_total": float(order.grand_total),
+            }, status=201)
 
 # detail de la commande: Ce code filtre la commande par user=request.user, donc un utilisateur ne peut pas voir les commandes d’un autre.
 class OrderDetailView(RetrieveAPIView):
@@ -110,12 +148,12 @@ class OrderRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
     def patch(self, request, *args, **kwargs):
         order = self.get_object()
-
+        print("shipping_method reçu dans PATCH:", request.data.get('shipping_method'))
         shipping_address_id = request.data.get('shipping_address_id')
         payment_method = request.data.get('payment_method')
+        shipping_method = request.data.get('shipping_method')
 
         if shipping_address_id:
-            # Vérifie que l’adresse appartient à l’utilisateur
             try:
                 shipping_address = ShippingAddress.objects.get(id=shipping_address_id, user=request.user)
             except ShippingAddress.DoesNotExist:
@@ -126,6 +164,11 @@ class OrderRetrieveUpdateAPIView(RetrieveUpdateAPIView):
             if payment_method not in ['card', 'paypal', 'cod']:
                 return Response({'error': 'Méthode de paiement invalide'}, status=status.HTTP_400_BAD_REQUEST)
             order.payment_method = payment_method
+        
+        if shipping_method:
+            if shipping_method not in ['standard', 'express']:
+                return Response({'error': 'Méthode de livraison invalide'}, status=status.HTTP_400_BAD_REQUEST)
+            order.shipping_method = shipping_method
 
         order.save()
         serializer = self.get_serializer(order)
