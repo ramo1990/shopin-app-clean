@@ -6,6 +6,8 @@ import axiosInstance from '@/lib/axiosInstance'
 import StripePayment from '@/components/payment/StripePayment'
 import type { AxiosError } from 'axios'
 import { OrderType } from '@/lib/types'
+import { useCartContext } from '@/context/CartContext'
+
 
 interface Address {
   id: number
@@ -26,6 +28,7 @@ export default function CheckoutPage() {
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null)
   const [showAllAddresses, setShowAllAddresses] = useState(false)
   const [deliveryMethod, setDeliveryMethod] = useState<'standard' | 'express'>('standard')
+  const { cart } = useCartContext()
 
   const [form, setForm] = useState({
     full_name: '',
@@ -103,6 +106,18 @@ export default function CheckoutPage() {
   }, [])
 
   useEffect(() => {
+    if (!order) return
+  
+    const orderTotal = parseFloat(order.total)
+    
+    // Si le total >= 20000 et que l'utilisateur n'a pas sélectionné express,
+    // on force automatiquement la livraison express gratuite
+    if (orderTotal >= 20000 && deliveryMethod !== 'express') {
+      setDeliveryMethod('express')
+    }
+  }, [order])
+
+  useEffect(() => {
     const fetchAddresses = async () => {
       const token = await refreshTokenIfNeeded()
       if (!token) return
@@ -134,6 +149,7 @@ export default function CheckoutPage() {
         {
           payment_method,
           shipping_address_id: selectedAddressId,
+          shipping_method: deliveryMethod,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -221,6 +237,77 @@ export default function CheckoutPage() {
     }
   }
 
+  const updateDeliveryMethod = async (method: 'standard' | 'express') => {
+    if (method === deliveryMethod) return
+    setDeliveryMethod(method) // Met à jour l'état local
+  
+    if (!order) return
+    const token = await refreshTokenIfNeeded()
+    if (!token) return
+  
+    try {
+      const res = await axiosInstance.patch(
+        `/orders/${order.id}/`,
+        {
+          shipping_method: method,
+          shipping_address_id: selectedAddressId,
+          payment_method: form.payment_method || order.payment_method,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setOrder(res.data)
+    } catch (err) {
+      console.error('Erreur mise à jour méthode de livraison :', err)
+    }
+  }
+  
+  const syncOrderWithCart = async () => {
+    const token = await refreshTokenIfNeeded()
+    if (!token || !selectedAddressId) return
+  
+    try {
+      let orderId = null
+  
+      if (order) {
+        const res = await axiosInstance.put('/orders/sync/', {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+  
+        setOrder(res.data)
+        orderId = res.data.id
+        console.log("🧾 Commande mise à jour avec le panier :", res.data)
+      } else {
+        const res = await axiosInstance.post('/orders/', {
+          shipping_address_id: selectedAddressId,
+          shipping_method: deliveryMethod,
+          payment_method: form.payment_method || '',
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+  
+        setOrder(res.data)
+        orderId = res.data.id
+        localStorage.setItem('currentOrderId', res.data.id.toString())
+        console.log("🧾 Réponse brute de création de commande:", res.data)
+      }
+  
+      // 🔁 Récupérer les détails complets
+      const fullOrder = await axiosInstance.get(`/orders/${orderId}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setOrder(fullOrder.data)
+      console.log('✅ Commande synchronisée avec panier:', fullOrder.data)
+    } catch (err) {
+      console.error('❌ Erreur lors de la synchronisation de la commande :', err)
+    }
+  }
+  
+  useEffect(() => {
+    if (order?.payment_method && form.payment_method !== order.payment_method) {
+      setForm((prev) => ({ ...prev, payment_method: order.payment_method }))
+    }
+  }, [order])
+  
   const handleDeleteAddress = async (id: number) => {
     if (!confirm('Voulez-vous vraiment supprimer cette adresse ?')) return
     const token = await refreshTokenIfNeeded()
@@ -362,8 +449,9 @@ export default function CheckoutPage() {
                     name="delivery"
                     value="standard"
                     checked={deliveryMethod === 'standard'}
-                    onChange={() => setDeliveryMethod('standard')}
+                    onChange={() => updateDeliveryMethod('standard')}
                     className="mr-2"
+                    disabled={parseFloat(order?.total || '0') >= 20000} // désactive si total >= 20000
                   />
                   Livraison standard (15 jours) – Gratuit
                 </label>
@@ -373,7 +461,7 @@ export default function CheckoutPage() {
                     name="delivery"
                     value="express"
                     checked={deliveryMethod === 'express'}
-                    onChange={() => setDeliveryMethod('express')}
+                    onChange={() => updateDeliveryMethod('express')}
                     className="mr-2"
                   />
                   Livraison express (3 jours) – {parseFloat(order?.total || '0') < 20000 ? '2000 Fcfa' : 'Gratuit'}

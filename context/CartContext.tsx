@@ -14,11 +14,12 @@ interface CartContextType {
   updateQuantity: (productId: number, qty: number) => Promise<void>
   clearCart: () => void
   fetchCart: () => Promise<void>
+  onCartChange?: () => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
-export const CartProvider = ({ children }: { children: ReactNode }) => {
+export const CartProvider = ({ children, onCartChange }: { children: ReactNode, onCartChange?: () => void }) => {
   const [cart, setCart] = useState<CartItem[]>([])
   const { user, loading: authLoading } = useAuth()
   const [error, setError] = useState<string | null>(null)
@@ -123,10 +124,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         )
         localStorage.removeItem('anonymous_user_id')
         console.log('Panier anonyme fusionné avec succès')
-
-        // setTimeout(() => {
-        //   fetchCart()
-        // }, 1000)
         
         await fetchCart()
       } catch (err) {
@@ -174,11 +171,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         await axiosInstance.post('cart/', data, { headers })
       }
 
-      setTimeout(() => {
-        fetchCart()
-      }, 100)
+      // setTimeout(() => {
+      //   fetchCart()
+      // }, 100)
       
-      // await fetchCart()
+      await fetchCart()
+      if (onCartChange) onCartChange()
       console.log('Panier rechargé', cart)
     } catch (err) {
       setError("Erreur lors de l'ajout au panier")
@@ -199,7 +197,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   
     await axiosInstance.delete(`cart/${itemId}/`, { headers, params });
-    await fetchCart();
+    await fetchCart()
+    if (onCartChange) onCartChange()
   };
   
 
@@ -219,7 +218,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const data = { quantity: qty };
   
       await axiosInstance.patch(`cart/${itemId}/`, data, { headers, params });
-      await fetchCart();
+      await fetchCart()
+      if (onCartChange) onCartChange()
     } catch (err) {
       console.error('Erreur updateQuantity:', err);
       setError("Impossible de modifier la quantité du produit.");
