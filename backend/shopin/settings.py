@@ -129,7 +129,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'shopin.wsgi.application'
 
-FRONTEND_URL = 'http://localhost:3000'  # ou ton domaine réel si déployé
+FRONTEND_URL = 'https://shopin-app-clean.vercel.app'  # ou ton domaine réel si déployé
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
