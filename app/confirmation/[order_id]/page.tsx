@@ -48,38 +48,3 @@ export default function ConfirmationPage() {
     </section>
   )
 }
-
-
-
-// import Link from "next/link";
-
-// type Params = {
-//       id: string;
-//   };
-
-// type Props = {
-//   params: Promise<Params>
-// }
-
-//   export default async function ConfirmationPage({ params }: Props) {
-//     // Pas besoin d'await ici, mais Next.js exige la fonction async
-//     const { id } = await params;
-  
-//     // ton fetch ou autre logique asynchrone ici (optionnel)
-  
-//     return (
-//       <section className="main-max-width padding-x py-12 text-center">
-//         <div className="max-w-xl mx-auto bg-white shadow-md p-8 rounded-lg">
-//           <h1 className="text-2xl sm:text-3xl font-bold text-green-700 mb-4">Merci pour votre commande !</h1>
-//           <p className="text-lg text-gray-700 mb-6">Votre numéro de commande est : <strong>{id}</strong></p>
-//           <div className="flex justify-center gap-4">
-//             <Link href="/profile" className="inline-block px-6 py-3 rounded-full bg-green-700 text-white text-base font-medium hover:bg-green-800 transition">
-//                Voir mes commandes </Link>
-//             <Link href="/" className="inline-block px-6 py-3 rounded-full bg-black text-white text-base font-medium hover:bg-gray-900 transition">
-//                Continuer mes achats </Link>
-//           </div>
-//         </div>
-//       </section>
-//     );
-//   }
-
