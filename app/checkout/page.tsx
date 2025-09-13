@@ -6,7 +6,7 @@ import axiosInstance from '@/lib/axiosInstance'
 import StripePayment from '@/components/payment/StripePayment'
 import type { AxiosError } from 'axios'
 import { OrderType } from '@/lib/types'
-import { useCartContext } from '@/context/CartContext'
+// import { useCartContext } from '@/context/CartContext'
 
 
 interface Address {
@@ -28,7 +28,7 @@ export default function CheckoutPage() {
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null)
   const [showAllAddresses, setShowAllAddresses] = useState(false)
   const [deliveryMethod, setDeliveryMethod] = useState<'standard' | 'express'>('standard')
-  const { cart } = useCartContext()
+  // const { cart } = useCartContext()
 
   const [form, setForm] = useState({
     full_name: '',
@@ -115,7 +115,7 @@ export default function CheckoutPage() {
     if (orderTotal >= 20000 && deliveryMethod !== 'express') {
       setDeliveryMethod('express')
     }
-  }, [order])
+  }, [order, deliveryMethod])
 
   useEffect(() => {
     const fetchAddresses = async () => {
@@ -261,52 +261,52 @@ export default function CheckoutPage() {
     }
   }
   
-  const syncOrderWithCart = async () => {
-    const token = await refreshTokenIfNeeded()
-    if (!token || !selectedAddressId) return
+  // const syncOrderWithCart = async () => {
+  //   const token = await refreshTokenIfNeeded()
+  //   if (!token || !selectedAddressId) return
   
-    try {
-      let orderId = null
+  //   try {
+  //     let orderId = null
   
-      if (order) {
-        const res = await axiosInstance.put('/orders/sync/', {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+  //     if (order) {
+  //       const res = await axiosInstance.put('/orders/sync/', {}, {
+  //         headers: { Authorization: `Bearer ${token}` }
+  //       })
   
-        setOrder(res.data)
-        orderId = res.data.id
-        console.log("🧾 Commande mise à jour avec le panier :", res.data)
-      } else {
-        const res = await axiosInstance.post('/orders/', {
-          shipping_address_id: selectedAddressId,
-          shipping_method: deliveryMethod,
-          payment_method: form.payment_method || '',
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+  //       setOrder(res.data)
+  //       orderId = res.data.id
+  //       console.log("🧾 Commande mise à jour avec le panier :", res.data)
+  //     } else {
+  //       const res = await axiosInstance.post('/orders/', {
+  //         shipping_address_id: selectedAddressId,
+  //         shipping_method: deliveryMethod,
+  //         payment_method: form.payment_method || '',
+  //       }, {
+  //         headers: { Authorization: `Bearer ${token}` }
+  //       })
   
-        setOrder(res.data)
-        orderId = res.data.id
-        localStorage.setItem('currentOrderId', res.data.id.toString())
-        console.log("🧾 Réponse brute de création de commande:", res.data)
-      }
+  //       setOrder(res.data)
+  //       orderId = res.data.id
+  //       localStorage.setItem('currentOrderId', res.data.id.toString())
+  //       console.log("🧾 Réponse brute de création de commande:", res.data)
+  //     }
   
-      // 🔁 Récupérer les détails complets
-      const fullOrder = await axiosInstance.get(`/orders/${orderId}/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      setOrder(fullOrder.data)
-      console.log('✅ Commande synchronisée avec panier:', fullOrder.data)
-    } catch (err) {
-      console.error('❌ Erreur lors de la synchronisation de la commande :', err)
-    }
-  }
+  //     // 🔁 Récupérer les détails complets
+  //     const fullOrder = await axiosInstance.get(`/orders/${orderId}/`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     setOrder(fullOrder.data)
+  //     console.log('✅ Commande synchronisée avec panier:', fullOrder.data)
+  //   } catch (err) {
+  //     console.error('❌ Erreur lors de la synchronisation de la commande :', err)
+  //   }
+  // }
   
   useEffect(() => {
     if (order?.payment_method && form.payment_method !== order.payment_method) {
       setForm((prev) => ({ ...prev, payment_method: order.payment_method }))
     }
-  }, [order])
+  }, [order, form.payment_method])
   
   const handleDeleteAddress = async (id: number) => {
     if (!confirm('Voulez-vous vraiment supprimer cette adresse ?')) return
