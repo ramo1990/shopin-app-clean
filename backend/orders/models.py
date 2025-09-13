@@ -35,7 +35,7 @@ class Order(models.Model):
     ]
     STATUS_CHOICES = [
         ('draft', 'Brouillon'),          # non validée, en cours de création
-        ('pending', 'En attente'),       # validée mais pas encore payée
+        ('pending', 'En attente de paiement'),       # validée mais pas encore payée
         ('paid', 'Payée'),
         ('shipped', 'Expédiée'),
         ('completed', 'Terminée'),
