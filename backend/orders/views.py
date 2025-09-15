@@ -161,7 +161,7 @@ class OrderRetrieveUpdateAPIView(RetrieveUpdateAPIView):
             order.shipping_address = shipping_address
 
         if payment_method:
-            if payment_method not in ['card', 'paypal', 'cod']:
+            if payment_method not in ['card', 'paiementpro', 'cod']:
                 return Response({'error': 'Méthode de paiement invalide'}, status=status.HTTP_400_BAD_REQUEST)
             order.payment_method = payment_method
         
