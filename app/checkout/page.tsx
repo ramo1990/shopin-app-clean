@@ -29,7 +29,7 @@ export default function CheckoutPage() {
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null)
   const [showAllAddresses, setShowAllAddresses] = useState(false)
   const [deliveryMethod, setDeliveryMethod] = useState<'standard' | 'express'>('standard')
-  // const { cart } = useCartContext()
+  const [selectedChannel, setSelectedChannel] = useState('OMCIV2')
 
   const [form, setForm] = useState({
     full_name: '',
@@ -469,8 +469,37 @@ export default function CheckoutPage() {
                     <StripePayment orderId={order.id} deliveryCost={deliveryCost} total={parseFloat(order.total)}/>
                   )}
                   
+                  {form.payment_method === 'paiementpro' && (
+                    <div className="mb-4 space-y-2">
+                      <p className="font-medium">Choisissez votre opérateur mobile :</p>
+                      <div className="flex gap-4">
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded border ${selectedChannel === 'OMCIV2' ? 'bg-orange-500 text-white' : 'bg-white border-gray-300'}`}
+                          onClick={() => setSelectedChannel('OMCIV2')}
+                        >
+                          Orange CI
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded border ${selectedChannel === 'MTNCIV2' ? 'bg-yellow-500 text-black' : 'bg-white border-gray-300'}`}
+                          onClick={() => setSelectedChannel('MTNCIV2')}
+                        >
+                          MTN CI
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded border ${selectedChannel === 'WAVECI' ? 'bg-blue-600 text-black' : 'bg-white border-gray-300'}`}
+                          onClick={() => setSelectedChannel('WAVECI')}
+                        >
+                          Wave
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {form.payment_method === 'paiementpro' && order && (
-                    <PaiementProPayment orderId={order.id} deliveryCost={deliveryCost} total={parseFloat(order.total)}/>
+                    <PaiementProPayment orderId={order.id} deliveryCost={deliveryCost} 
+                        total={parseFloat(order.total)} channel={selectedChannel}/>
                   )}
 
                   {!order.payment_method && (

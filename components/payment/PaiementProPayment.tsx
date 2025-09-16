@@ -8,6 +8,7 @@ interface PaiementProPaymentProps {
   orderId: number
   deliveryCost: number
   total: number
+  channel: string
 }
 
 class PaiementPro {
@@ -52,7 +53,7 @@ class PaiementPro {
     }
   }
 
-export default function PaiementProPayment({ orderId, deliveryCost, total }: PaiementProPaymentProps) {
+export default function PaiementProPayment({ orderId, deliveryCost, total, channel }: PaiementProPaymentProps) {
   console.log("PaiementProPayment rendu avec :", { orderId, deliveryCost, total })
   const [isLoading, setIsLoading] = useState(false)
   const [scriptLoaded, setScriptLoaded] = useState(false)
@@ -78,7 +79,7 @@ export default function PaiementProPayment({ orderId, deliveryCost, total }: Pai
       const paiementPro = new PaiementPro(process.env.NEXT_PUBLIC_PAIEMENTPRO_MERCHANT_ID!) // ⚠️ .env
 
       paiementPro.amount = Math.round(total + deliveryCost)
-      paiementPro.channel = 'OMCIV2' // 💡 Orange CI — tu peux aussi le rendre dynamique
+      paiementPro.channel = channel // 💡 Orange CI — tu peux aussi le rendre dynamique
       paiementPro.referenceNumber = `CMD-${order.id}-${Date.now()}`
       paiementPro.customerEmail = order.user.email || 'client@example.com'
       paiementPro.customerFirstName = order.user.first_name || 'Client'
@@ -131,18 +132,12 @@ export default function PaiementProPayment({ orderId, deliveryCost, total }: Pai
             console.log("clic PaiementPro")
             handlePaiementProCheckout()}}
         disabled={isLoading || isBelowMinimum}
-        className="bg-orange-500 text-white px-4 py-2 rounded"
-        style={{ zIndex:9999, position: 'relative', background: 'blue' }}
+        className="bg-blue-600 mx-auto text-white px-6 py-3 rounded w-full block text-center font-semibold shadow-lg hover:bg-blue-700 transition"
+        style={{ zIndex:9999, position: 'relative' }}
       >
-        {isLoading ? 'Redirection...' : 'Payer via Orange / MTN / Wave'}
+        {isLoading ? 'Redirection...' : 'Payer'}
         {/* Payer via Orange / MTN / Wave */}
       </button>
-
-      {!scriptLoaded && (
-        <p className="text-yellow-500 text-sm mt-2">
-          Chargement de la passerelle PaiementPro en cours...
-        </p>
-      )}
 
       {isBelowMinimum && (
         <p className="text-red-500 text-sm mt-2">
