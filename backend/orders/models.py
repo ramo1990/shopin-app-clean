@@ -55,6 +55,12 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     stripe_checkout_id = models.CharField(max_length=255, blank=True, null=True)
+
+    customer_email = models.EmailField(blank=True, null=True)
+    customer_first_name = models.CharField(max_length=100, blank=True, null=True)
+    customer_last_name = models.CharField(max_length=100, blank=True, null=True)
+    customer_phone = models.CharField(max_length=20, blank=True, null=True)
+
     created_by = models.ForeignKey(CustomUser, related_name='orders_created', on_delete=models.SET_NULL, null=True, blank=True) # audit
     updated_by = models.ForeignKey(CustomUser, related_name='orders_updated', on_delete=models.SET_NULL, null=True, blank=True) # audit
 
@@ -68,10 +74,17 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.order_id:
             self.order_id = f"SHOP{uuid.uuid4().hex[:8].upper()}"
-        print("🧪 Calcul du grand_total — total:", self.total)
+        # Calcul du montant total avec livraison
         delivery_fee = self.calculate_delivery_fee()
-        print("🧪 Delivery fee:", delivery_fee)
         self.grand_total = self.total + delivery_fee
+        # Dé-normaliser les données client au moment de la sauvegarde
+        if self.user:
+            self.customer_email = self.user.email
+            self.customer_first_name = self.user.first_name
+            self.customer_last_name = self.user.last_name
+
+        if self.shipping_address:
+            self.customer_phone = self.shipping_address.phone
         super().save(*args, **kwargs)
 
     def __str__(self):

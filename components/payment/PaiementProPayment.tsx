@@ -81,10 +81,10 @@ export default function PaiementProPayment({ orderId, deliveryCost, total, chann
       paiementPro.amount = Math.round(total + deliveryCost)
       paiementPro.channel = channel // 💡 Orange CI — tu peux aussi le rendre dynamique
       paiementPro.referenceNumber = `CMD-${order.id}-${Date.now()}`
-      paiementPro.customerEmail = order.user.email || 'client@example.com'
-      paiementPro.customerFirstName = order.user.first_name || 'Client'
-      paiementPro.customerLastname = order.user.last_name || 'Paiement'
-      paiementPro.customerPhoneNumber = order.shipping_address.phone
+      paiementPro.customerEmail = order.customer_email || 'client@example.com'
+      paiementPro.customerFirstName = order.customer_first_name || 'Client'
+      paiementPro.customerLastname = order.customer_last_name || 'Paiement'
+      paiementPro.customerPhoneNumber =order.customer_phone || order.shipping_address.phone
       paiementPro.description = `Commande #${order.id}`
     //   paiementPro.returnURL = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/confirmation/${order.id}`
       paiementPro.returnURL = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/confirmation/${order.order_id}`
