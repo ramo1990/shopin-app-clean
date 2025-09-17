@@ -7,8 +7,6 @@ import StripePayment from '@/components/payment/StripePayment'
 import type { AxiosError } from 'axios'
 import { OrderType } from '@/lib/types'
 import PaiementProPayment from '@/components/payment/PaiementProPayment'
-// import { useCartContext } from '@/context/CartContext'
-
 
 interface Address {
   id: number
@@ -57,6 +55,17 @@ export default function CheckoutPage() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showNewAddressForm])
+
+  // useEffect(() => {
+  //   const wasCancelled = localStorage.getItem('paiement_annule')
+
+  //   if (wasCancelled) {
+  //     setTimeout(() => {
+  //       toast.error('Paiement annulé.')
+  //       localStorage.removeItem('paiement_annule') // reset
+  //     }, 500)  
+  //   }
+  // }, [])
 
   useEffect(() => {
     const mergeCartIfNeeded = async () => {
@@ -276,6 +285,7 @@ export default function CheckoutPage() {
   const deliveryCost = calculateDeliveryCost()
   const totalWithDelivery = order ? parseFloat(order.total) + deliveryCost : 0
   console.log("Méthode de paiement sélectionnée :", form.payment_method)
+  
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold text-gray-900 mb-10 text-center md:text-left">
@@ -428,13 +438,6 @@ export default function CheckoutPage() {
                       <span>{method.label}</span>
                     </label>
                   ))}
-
-                  {/* <button
-                    type="submit"
-                    className="mt-4 bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
-                  >
-                    Valider
-                  </button> */}
                 </form>
               </>
             )}

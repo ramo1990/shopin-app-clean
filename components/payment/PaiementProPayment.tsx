@@ -15,8 +15,8 @@ class PaiementPro {
     merchantId: string;
     amount: number = 0;
     description: string = '';
-    channel: string = '';
-    countryCurrencyCode: string = '952';
+    channel: string = ''; // OMCIV2 / MTNCIV2 / WAVECI
+    countryCurrencyCode: string = '952'; // 952 = Franc CFA
     referenceNumber: string = '';
     customerEmail: string = '';
     customerFirstName: string = '';
@@ -86,7 +86,8 @@ export default function PaiementProPayment({ orderId, deliveryCost, total, chann
       paiementPro.customerLastname = order.user.last_name || 'Paiement'
       paiementPro.customerPhoneNumber = order.shipping_address.phone
       paiementPro.description = `Commande #${order.id}`
-      paiementPro.returnURL = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/confirmation/${order.id}`
+    //   paiementPro.returnURL = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/confirmation/${order.id}`
+      paiementPro.returnURL = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/paiement-retour?order_id=${order.id}&status=cancelled`
       paiementPro.notificationURL = `${process.env.NEXT_PUBLIC_API_URL}/paiementpro/webhook/`
       paiementPro.returnContext = JSON.stringify({ order_id: order.id })
 
