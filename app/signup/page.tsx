@@ -35,29 +35,6 @@ const SignUpPage = () => {
       const registerRes = await registerUser(form)
       console.log("Inscription réussie de signup:", registerRes.message);
 
-      // Connexion automatique après inscription
-    // const loginRes = await fetch(`${API_URL}/token/`, {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     username: form.username,
-    //     password: form.password,
-    //   }),
-    // })
-    
-
-    // if (!loginRes.ok) {
-    //   const errorData = await loginRes.json();
-    //   console.error("Login error:", errorData);
-    //   throw new Error("Connexion échouée")}
-
-    // const loginData = await loginRes.json()
-    // localStorage.setItem('accessToken', loginData.access)
-    // localStorage.setItem('refreshToken', loginData.refresh)
-    // const token = loginData.access
-
     // Envoie l’email de vérification
     const emailRes = await fetch(`${API_URL}/send-verification-email/`, {
       method: "POST",
@@ -76,12 +53,6 @@ const SignUpPage = () => {
 
     const emailData = await emailRes.json()
     console.log('Email verification response:', emailData);
-
-    // Afficher le message de succès avant la redirection
-    // setSuccessMessage(
-    //   // emailData.message
-    //   "Un lien de vérification vous a été envoyé. Veuillez vérifier votre adresse email pour activer votre compte."
-    //   )
 
     // Rediriger après un délai (par ex 3s)
     setTimeout(() => {

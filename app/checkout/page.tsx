@@ -97,6 +97,7 @@ export default function CheckoutPage() {
         const res = await axiosInstance.get(`/orders/${orderId}/`, {
           headers: { Authorization: `Bearer ${token}` },
         })
+        console.log("commande recu:", res.data)
         setOrder(res.data)
       } catch (err) {
         console.error('Erreur chargement commande existante :', err)
