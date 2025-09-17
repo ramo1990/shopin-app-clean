@@ -135,9 +135,9 @@ def paiementpro_webhook(request):
 
     try:
         data = json.loads(request.body.decode('utf-8'))
-        print("📩 Webhook PaiementPro reçu:", data)
+        print("Webhook PaiementPro reçu:", data)
     except Exception as e:
-        print("⚠️ Erreur lecture JSON:", e)
+        print("Erreur lecture JSON:", e)
         return JsonResponse({"error": "Payload invalide"}, status=400)
 
     status_paiement = data.get("status")
@@ -147,7 +147,7 @@ def paiementpro_webhook(request):
         return JsonResponse({"error": "Champs manquants"}, status=400)
 
     if status_paiement != "SUCCESS":
-        print("⛔ Paiement échoué ou en attente :", status_paiement)
+        print("Paiement échoué ou en attente :", status_paiement)
         return JsonResponse({"message": "Paiement non finalisé"}, status=200)
 
     try:
@@ -156,14 +156,14 @@ def paiementpro_webhook(request):
         order_id = int(reference.split("-")[1])
         order = Order.objects.get(id=order_id)
     except (IndexError, ValueError, Order.DoesNotExist):
-        print("❌ Erreur récupération commande depuis référence :", reference)
+        print("Erreur récupération commande depuis référence :", reference)
         return JsonResponse({"error": "Commande introuvable"}, status=404)
 
     # Paiement réussi
     order.payment_status = 'paid'
     order.status = 'paid'
     order.save()
-    print(f"✅ Commande {order.id} mise à jour avec succès via PaiementPro ({data.get('channel')})")
+    print(f"Commande {order.id} mise à jour avec succès via PaiementPro ({data.get('channel')})")
 
     # 🧹 Supprimer le panier
     CartItem.objects.filter(user=order.user).delete()

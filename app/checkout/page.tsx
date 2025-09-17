@@ -254,7 +254,7 @@ export default function CheckoutPage() {
     if (order?.payment_method && !form.payment_method) {
       setForm((prev) => ({ ...prev, payment_method: order.payment_method }))
     }
-  }, [order])
+  }, [order, form.payment_method])
   
   const handleDeleteAddress = async (id: number) => {
     if (!confirm('Voulez-vous vraiment supprimer cette adresse ?')) return

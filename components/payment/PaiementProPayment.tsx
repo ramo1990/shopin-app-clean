@@ -56,7 +56,7 @@ class PaiementPro {
 export default function PaiementProPayment({ orderId, deliveryCost, total, channel }: PaiementProPaymentProps) {
   console.log("PaiementProPayment rendu avec :", { orderId, deliveryCost, total })
   const [isLoading, setIsLoading] = useState(false)
-  const [scriptLoaded, setScriptLoaded] = useState(false)
+//   const [scriptLoaded, setScriptLoaded] = useState(false)
 
   const handlePaiementProCheckout = async () => {
     console.log("Début PaiementPro");
@@ -87,7 +87,7 @@ export default function PaiementProPayment({ orderId, deliveryCost, total, chann
       paiementPro.customerPhoneNumber = order.shipping_address.phone
       paiementPro.description = `Commande #${order.id}`
     //   paiementPro.returnURL = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/confirmation/${order.id}`
-      paiementPro.returnURL = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/paiement-retour?order_id=${order.id}&status=cancelled`
+      paiementPro.returnURL = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/confirmation/${order.order_id}`
       paiementPro.notificationURL = `${process.env.NEXT_PUBLIC_API_URL}/paiementpro/webhook/`
       paiementPro.returnContext = JSON.stringify({ order_id: order.id })
 
@@ -120,7 +120,6 @@ export default function PaiementProPayment({ orderId, deliveryCost, total, chann
   const isBelowMinimum = totalWithDelivery < 500
 
   console.log({
-    scriptLoaded,
     isLoading,
     isBelowMinimum,
     totalWithDelivery
