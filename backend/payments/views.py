@@ -7,6 +7,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from cart.models import CartItem
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+from django.http import JsonResponse
+import json
+
 
 
 # mode de paiement
@@ -78,9 +83,6 @@ def paiement_valide(order_id):
         pass
 
 # Stipe webhook
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
-
 @csrf_exempt
 def stripe_webhook(request):
     print("==> Webhook Stripe reçu")
@@ -125,3 +127,45 @@ def stripe_webhook(request):
             print("❌ Aucune commande trouvée avec cet ID")
 
     return HttpResponse(status=200)
+
+@csrf_exempt
+def paiementpro_webhook(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        print("Webhook PaiementPro reçu:", data)
+    except Exception as e:
+        print("Erreur lecture JSON:", e)
+        return JsonResponse({"error": "Payload invalide"}, status=400)
+
+    status_paiement = data.get("status")
+    reference = data.get("reference")
+
+    if not status_paiement or not reference:
+        return JsonResponse({"error": "Champs manquants"}, status=400)
+
+    if status_paiement != "SUCCESS":
+        print("Paiement échoué ou en attente :", status_paiement)
+        return JsonResponse({"message": "Paiement non finalisé"}, status=200)
+
+    try:
+        # Extraire l'ID de commande depuis la référence
+        # ex: "CMD-73-1757932502297" → 73
+        order_id = int(reference.split("-")[1])
+        order = Order.objects.get(id=order_id)
+    except (IndexError, ValueError, Order.DoesNotExist):
+        print("Erreur récupération commande depuis référence :", reference)
+        return JsonResponse({"error": "Commande introuvable"}, status=404)
+
+    # Paiement réussi
+    order.payment_status = 'paid'
+    order.status = 'paid'
+    order.save()
+    print(f"Commande {order.id} mise à jour avec succès via PaiementPro ({data.get('channel')})")
+
+    # 🧹 Supprimer le panier
+    CartItem.objects.filter(user=order.user).delete()
+
+    return JsonResponse({"message": "Paiement traité avec succès"}, status=200)

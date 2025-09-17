@@ -6,8 +6,7 @@ import axiosInstance from '@/lib/axiosInstance'
 import StripePayment from '@/components/payment/StripePayment'
 import type { AxiosError } from 'axios'
 import { OrderType } from '@/lib/types'
-// import { useCartContext } from '@/context/CartContext'
-
+import PaiementProPayment from '@/components/payment/PaiementProPayment'
 
 interface Address {
   id: number
@@ -28,7 +27,7 @@ export default function CheckoutPage() {
   const [editingAddressId, setEditingAddressId] = useState<number | null>(null)
   const [showAllAddresses, setShowAllAddresses] = useState(false)
   const [deliveryMethod, setDeliveryMethod] = useState<'standard' | 'express'>('standard')
-  // const { cart } = useCartContext()
+  const [selectedChannel, setSelectedChannel] = useState('OMCIV2')
 
   const [form, setForm] = useState({
     full_name: '',
@@ -49,21 +48,29 @@ export default function CheckoutPage() {
         setShowNewAddressForm(false)
       }
     }
-
     if (showNewAddressForm) {
       document.addEventListener('mousedown', handleClickOutside)
     }
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showNewAddressForm])
 
+  // useEffect(() => {
+  //   const wasCancelled = localStorage.getItem('paiement_annule')
+
+  //   if (wasCancelled) {
+  //     setTimeout(() => {
+  //       toast.error('Paiement annulé.')
+  //       localStorage.removeItem('paiement_annule') // reset
+  //     }, 500)  
+  //   }
+  // }, [])
+
   useEffect(() => {
     const mergeCartIfNeeded = async () => {
       const token = await refreshTokenIfNeeded()
       const anonymousUserId = localStorage.getItem('anonymous_user_id')
-
       if (anonymousUserId) {
         try {
           await axiosInstance.post(
@@ -77,7 +84,6 @@ export default function CheckoutPage() {
         }
       }
     }
-
     mergeCartIfNeeded()
   }, [])
 
@@ -85,10 +91,8 @@ export default function CheckoutPage() {
     const fetchOrderIfExists = async () => {
       const orderId = localStorage.getItem('currentOrderId')
       if (!orderId) return
-
       const token = await refreshTokenIfNeeded()
       if (!token) return
-
       try {
         const res = await axiosInstance.get(`/orders/${orderId}/`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -101,15 +105,12 @@ export default function CheckoutPage() {
         setOrder(null)
       }
     }
-
     fetchOrderIfExists()
   }, [])
 
   useEffect(() => {
     if (!order) return
-  
     const orderTotal = parseFloat(order.total)
-    
     // Si le total >= 20000 et que l'utilisateur n'a pas sélectionné express,
     // on force automatiquement la livraison express gratuite
     if (orderTotal >= 20000 && deliveryMethod !== 'express') {
@@ -121,7 +122,6 @@ export default function CheckoutPage() {
     const fetchAddresses = async () => {
       const token = await refreshTokenIfNeeded()
       if (!token) return
-
       try {
         const res = await axiosInstance.get('/shipping-address/', {
           headers: { Authorization: `Bearer ${token}` },
@@ -134,7 +134,6 @@ export default function CheckoutPage() {
         setIsLoading(false)
       }
     }
-
     fetchAddresses()
   }, [])
 
@@ -142,7 +141,6 @@ export default function CheckoutPage() {
     if (!order) return
     const token = await refreshTokenIfNeeded()
     if (!token) return
-
     try {
       const res = await axiosInstance.patch(
         `/orders/${order.id}/`,
@@ -153,7 +151,7 @@ export default function CheckoutPage() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-
+      console.log("Réponse PATCH updatePaymentMethod:", res.data)
       setOrder(res.data)
     } catch (err) {
       console.error('Erreur mise à jour mode de paiement :', err)
@@ -164,6 +162,7 @@ export default function CheckoutPage() {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
     if (name === 'payment_method' && value !=='') {
+      console.log("Payment method selected:", value)
       updatePaymentMethod(value)
       // setOrder((prev) => prev ? { ...prev, payment_method: value } : prev)
       // if (order) updatePaymentMethod(value)
@@ -174,18 +173,14 @@ export default function CheckoutPage() {
     e.preventDefault()
     const token = await refreshTokenIfNeeded()
     if (!token) return alert('Connectez-vous pour continuer.')
-
     try {
       let addressId = selectedAddressId
-
       if (showNewAddressForm) {
         const addressOnly = { ...form }
-
         if (editingAddressId !== null) {
           const res = await axiosInstance.put(`/shipping-address/${editingAddressId}/`, addressOnly, {
             headers: { Authorization: `Bearer ${token}` },
           })
-
           setAddresses((prev) => prev.map((addr) => (addr.id === editingAddressId ? res.data : addr)))
           addressId = editingAddressId
           setEditingAddressId(null)
@@ -193,16 +188,13 @@ export default function CheckoutPage() {
           const res = await axiosInstance.post('/shipping-address/', addressOnly, {
             headers: { Authorization: `Bearer ${token}` },
           })
-
           setAddresses((prev) => [...prev, res.data])
           addressId = res.data.id
         }
-
         setSelectedAddressId(addressId)
         setShowNewAddressForm(false)
         setForm({ ...form, full_name: '', address: '', city: '', postal_code: '', country: '', phone: '' })
       }
-
       if (order) {
         const res = await axiosInstance.patch(
           `/orders/${order.id}/`,
@@ -222,7 +214,6 @@ export default function CheckoutPage() {
           },
           { headers: { Authorization: `Bearer ${token}` } }
         )
-
         setOrder(res.data)
         console.log('Réponse création commande :', res.data)
         localStorage.setItem('currentOrderId', res.data.id.toString())
@@ -240,11 +231,9 @@ export default function CheckoutPage() {
   const updateDeliveryMethod = async (method: 'standard' | 'express') => {
     if (method === deliveryMethod) return
     setDeliveryMethod(method) // Met à jour l'état local
-  
     if (!order) return
     const token = await refreshTokenIfNeeded()
     if (!token) return
-  
     try {
       const res = await axiosInstance.patch(
         `/orders/${order.id}/`,
@@ -261,49 +250,8 @@ export default function CheckoutPage() {
     }
   }
   
-  // const syncOrderWithCart = async () => {
-  //   const token = await refreshTokenIfNeeded()
-  //   if (!token || !selectedAddressId) return
-  
-  //   try {
-  //     let orderId = null
-  
-  //     if (order) {
-  //       const res = await axiosInstance.put('/orders/sync/', {}, {
-  //         headers: { Authorization: `Bearer ${token}` }
-  //       })
-  
-  //       setOrder(res.data)
-  //       orderId = res.data.id
-  //       console.log("🧾 Commande mise à jour avec le panier :", res.data)
-  //     } else {
-  //       const res = await axiosInstance.post('/orders/', {
-  //         shipping_address_id: selectedAddressId,
-  //         shipping_method: deliveryMethod,
-  //         payment_method: form.payment_method || '',
-  //       }, {
-  //         headers: { Authorization: `Bearer ${token}` }
-  //       })
-  
-  //       setOrder(res.data)
-  //       orderId = res.data.id
-  //       localStorage.setItem('currentOrderId', res.data.id.toString())
-  //       console.log("🧾 Réponse brute de création de commande:", res.data)
-  //     }
-  
-  //     // 🔁 Récupérer les détails complets
-  //     const fullOrder = await axiosInstance.get(`/orders/${orderId}/`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     setOrder(fullOrder.data)
-  //     console.log('✅ Commande synchronisée avec panier:', fullOrder.data)
-  //   } catch (err) {
-  //     console.error('❌ Erreur lors de la synchronisation de la commande :', err)
-  //   }
-  // }
-  
   useEffect(() => {
-    if (order?.payment_method && form.payment_method !== order.payment_method) {
+    if (order?.payment_method && !form.payment_method) {
       setForm((prev) => ({ ...prev, payment_method: order.payment_method }))
     }
   }, [order, form.payment_method])
@@ -312,7 +260,6 @@ export default function CheckoutPage() {
     if (!confirm('Voulez-vous vraiment supprimer cette adresse ?')) return
     const token = await refreshTokenIfNeeded()
     if (!token) return alert('Non autorisé')
-
     try {
       await axiosInstance.delete(`/shipping-address/${id}/`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -327,7 +274,7 @@ export default function CheckoutPage() {
   const paymentMethods = [
     { value: 'cod', label: 'Paiement à la livraison 🏠' },
     { value: 'card', label: 'Carte bancaire 💳' },
-    { value: 'paypal', label: 'PayPal 🅿️' },
+    { value: 'paiementpro', label: 'Orange / MTN / Wave 🇨🇮' },
   ]
 
   const calculateDeliveryCost = () => {
@@ -337,7 +284,7 @@ export default function CheckoutPage() {
   }
   const deliveryCost = calculateDeliveryCost()
   const totalWithDelivery = order ? parseFloat(order.total) + deliveryCost : 0
-
+  console.log("Méthode de paiement sélectionnée :", form.payment_method)
   
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -491,13 +438,6 @@ export default function CheckoutPage() {
                       <span>{method.label}</span>
                     </label>
                   ))}
-
-                  {/* <button
-                    type="submit"
-                    className="mt-4 bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
-                  >
-                    Valider
-                  </button> */}
                 </form>
               </>
             )}
@@ -519,7 +459,7 @@ export default function CheckoutPage() {
                   Total à payer: {totalWithDelivery} Fcfa
                 </p>
               </div>
-
+            
               {order.payment_method && (
                 <>
                   {order.payment_method === 'cod' && (
@@ -527,17 +467,44 @@ export default function CheckoutPage() {
                       Paiement à la livraison sélectionné. Une caution de 2OOO Fcfa est demandée.
                     </p>
                   )}
-
-                  {order.payment_method === 'card' && form.payment_method === 'card' && (
+                  
+                  {form.payment_method === 'card' && order && (
                     <StripePayment orderId={order.id} deliveryCost={deliveryCost} total={parseFloat(order.total)}/>
                   )}
-
-                  {order.payment_method === 'paypal' && (
-                    <p className="text-blue-600 font-semibold mb-4">
-                      Paiement PayPal sélectionné. (Composant à venir)
-                    </p>
+                  
+                  {form.payment_method === 'paiementpro' && (
+                    <div className="mb-4 space-y-2">
+                      <p className="font-medium">Choisissez votre opérateur mobile :</p>
+                      <div className="flex gap-4">
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded border ${selectedChannel === 'OMCIV2' ? 'bg-orange-500 text-white' : 'bg-white border-gray-300'}`}
+                          onClick={() => setSelectedChannel('OMCIV2')}
+                        >
+                          Orange CI
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded border ${selectedChannel === 'MTNCIV2' ? 'bg-yellow-500 text-black' : 'bg-white border-gray-300'}`}
+                          onClick={() => setSelectedChannel('MTNCIV2')}
+                        >
+                          MTN CI
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded border ${selectedChannel === 'WAVECI' ? 'bg-blue-600 text-black' : 'bg-white border-gray-300'}`}
+                          onClick={() => setSelectedChannel('WAVECI')}
+                        >
+                          Wave
+                        </button>
+                      </div>
+                    </div>
                   )}
-                
+                  {form.payment_method === 'paiementpro' && order && (
+                    <PaiementProPayment orderId={order.id} deliveryCost={deliveryCost} 
+                        total={parseFloat(order.total)} channel={selectedChannel}/>
+                  )}
+
                   {!order.payment_method && (
                     <p className="text-gray-500 italic">
                       Veuillez sélectionner un mode de paiement ci-dessus.
