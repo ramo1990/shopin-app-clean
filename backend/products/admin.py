@@ -16,6 +16,12 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)} 
     inlines = [ProductImageInline]
 
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:  # Nouveau produit
+            obj.created_by = request.user
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+
 # variant image
 class ProductVariantImageInline(admin.TabularInline):
     model = ProductVariantImage
@@ -26,3 +32,9 @@ class ProductVariantAdmin(admin.ModelAdmin):
     list_display = ('product', 'color', 'size', 'price', 'stock', 'available')
     list_filter = ('product', 'color', 'size', 'available')
     inlines = [ProductVariantImageInline]
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.created_by = request.user
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)

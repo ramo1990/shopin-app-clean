@@ -55,7 +55,10 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     stripe_checkout_id = models.CharField(max_length=255, blank=True, null=True)
-
+    paiementpro_session_id = models.CharField(max_length=255, blank=True, null=True)
+    payment_channel = models.CharField(max_length=50, blank=True, null=True)  # OMCI, MTNCI, WAVECI
+    reference_number = models.CharField(max_length=100, blank=True, null=True)
+    
     customer_email = models.EmailField(blank=True, null=True)
     customer_first_name = models.CharField(max_length=100, blank=True, null=True)
     customer_last_name = models.CharField(max_length=100, blank=True, null=True)

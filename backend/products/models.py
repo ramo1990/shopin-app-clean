@@ -45,6 +45,8 @@ class ProductVariant(models.Model):
     stock = models.PositiveIntegerField()
     image = models.ImageField(upload_to='variant_images/', null=True, blank=True)
     available = models.BooleanField(default=True)
+    created_by = models.ForeignKey(CustomUser, related_name='productVariants_created', on_delete=models.SET_NULL, null=True, blank=True) # audit
+    updated_by = models.ForeignKey(CustomUser, related_name='productVariants_updated', on_delete=models.SET_NULL, null=True, blank=True) # audit
 
     def __str__(self):
         return f"{self.product.title} - {self.color} {self.size}"

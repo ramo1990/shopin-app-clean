@@ -28,6 +28,7 @@ class PaiementPro {
     url: string = '';
     success: boolean = false;
     error: string = '';
+    sessionId: string = '';
   
     constructor(merchantId: string) {
       this.merchantId = merchantId;
@@ -46,6 +47,7 @@ class PaiementPro {
       this.url = data.url;
       this.success = data.success;
       this.error = data.error;
+      this.sessionId = data.sessionId;
     }
   
     async getUrlPayment() {
@@ -100,9 +102,19 @@ export default function PaiementProPayment({ orderId, deliveryCost, total, chann
       console.log("paiementPro.success:", paiementPro.success)
       console.log("paiementPro.url:", paiementPro.url)
       console.log("paiementPro.error:", paiementPro.error)
-
+      
       if (paiementPro.success) {
+        // Enregistre le sessionId dans la commande
+        await axiosInstance.patch(`/orders/${order.id}/`, {
+            paiementpro_session_id: paiementPro.sessionId
+          }, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+          
         console.log("Redirection vers :", paiementPro.url)
+        // Redirection vers la page de paiement
         window.location.href = paiementPro.url
       } else {
         alert('Erreur : impossible d’obtenir le lien de paiement.')
@@ -117,7 +129,7 @@ export default function PaiementProPayment({ orderId, deliveryCost, total, chann
   }
 
   const totalWithDelivery = total + deliveryCost
-  const isBelowMinimum = totalWithDelivery < 500
+  const isBelowMinimum = totalWithDelivery < 1
 
   console.log({
     isLoading,
@@ -136,12 +148,11 @@ export default function PaiementProPayment({ orderId, deliveryCost, total, chann
         style={{ zIndex:9999, position: 'relative' }}
       >
         {isLoading ? 'Redirection...' : 'Payer'}
-        {/* Payer via Orange / MTN / Wave */}
       </button>
 
       {isBelowMinimum && (
         <p className="text-red-500 text-sm mt-2">
-          Le montant minimum pour un paiement est de 500 FCFA.
+          Le montant minimum pour un paiement est de 1 FCFA.
         </p>
       )}
     </>

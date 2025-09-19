@@ -73,12 +73,17 @@ class CreateOrderView(APIView):
                 product=item.product,
                 name=item.product.title,
                 quantity=item.quantity,
-                price=item.product.price
-                # created_by=request.CustomUser
+                price=item.product.price,
+                created_by=request.user,
+                updated_by=request.user
             )
 
         # Recalculer les frais et le total final
         order.grand_total = order.total + order.calculate_delivery_fee()
+
+        if created:
+            order.created_by = request.user
+        order.updated_by = request.user
         order.save()
 
         return Response({
@@ -149,13 +154,16 @@ class OrderRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     def patch(self, request, *args, **kwargs):
         order = self.get_object()
         print("shipping_method reçu dans PATCH:", request.data.get('shipping_method'))
+
         shipping_address_id = request.data.get('shipping_address_id')
         payment_method = request.data.get('payment_method')
         shipping_method = request.data.get('shipping_method')
+        paiementpro_session_id = request.data.get('paiementpro_session_id')
 
         if shipping_address_id:
             try:
                 shipping_address = ShippingAddress.objects.get(id=shipping_address_id, user=request.user)
+                order.shipping_address = shipping_address
             except ShippingAddress.DoesNotExist:
                 return Response({'error': 'Adresse invalide'}, status=status.HTTP_400_BAD_REQUEST)
             order.shipping_address = shipping_address
@@ -164,17 +172,29 @@ class OrderRetrieveUpdateAPIView(RetrieveUpdateAPIView):
             if payment_method not in ['card', 'paiementpro', 'cod']:
                 return Response({'error': 'Méthode de paiement invalide'}, status=status.HTTP_400_BAD_REQUEST)
             order.payment_method = payment_method
-        
+
+            if payment_method != 'card':
+                order.stripe_checkout_id = None
+
+            if payment_method != 'paiementpro':
+                order.paiementpro_session_id = None
+
         if shipping_method:
             if shipping_method not in ['standard', 'express']:
                 return Response({'error': 'Méthode de livraison invalide'}, status=status.HTTP_400_BAD_REQUEST)
             order.shipping_method = shipping_method
 
+        # paiementpro_session_id = request.data.get('paiementpro_session_id')
+        if paiementpro_session_id:
+            order.paiementpro_session_id = paiementpro_session_id
+            if order.payment_method != 'paiementpro':
+                order.payment_method = 'paiementpro'
+                order.stripe_checkout_id = None
+
+        order.updated_by = request.user
         order.save()
         serializer = self.get_serializer(order)
         return Response(serializer.data)
-
-
 
 class OrderTrackingAPIView(APIView):
     def get(self, request):
