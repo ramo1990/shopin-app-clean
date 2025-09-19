@@ -117,7 +117,7 @@ export default function PaiementProPayment({ orderId, deliveryCost, total, chann
   }
 
   const totalWithDelivery = total + deliveryCost
-  const isBelowMinimum = totalWithDelivery < 500
+  const isBelowMinimum = totalWithDelivery < 1
 
   console.log({
     isLoading,
@@ -136,12 +136,11 @@ export default function PaiementProPayment({ orderId, deliveryCost, total, chann
         style={{ zIndex:9999, position: 'relative' }}
       >
         {isLoading ? 'Redirection...' : 'Payer'}
-        {/* Payer via Orange / MTN / Wave */}
       </button>
 
       {isBelowMinimum && (
         <p className="text-red-500 text-sm mt-2">
-          Le montant minimum pour un paiement est de 500 FCFA.
+          Le montant minimum pour un paiement est de 1 FCFA.
         </p>
       )}
     </>
