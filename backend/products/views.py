@@ -58,6 +58,22 @@ def search_products(request):
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
 
+class ProductCreateView(generics.CreateAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        print("User dans perform_create:", self.request.user)
+        serializer.save(created_by=self.request.user, updated_by=self.request.user)
+
+class ProductUpdateView(generics.UpdateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'pk'
+
+    def perform_update(self, serializer):
+        serializer.save(updated_by=self.request.user)
 
 # Avis
 class ProductReviewCreateView(generics.CreateAPIView):

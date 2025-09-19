@@ -33,8 +33,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'title', 'description', 'price', 'image', 'images', 'stock', 'slug','tags', 'variants',
-                  'average_rating', 'total_reviews', 'rating_distribution', 'available', 'created_at', 'updated_at']
+        fields = '__all__'
+        read_only_fields = ['created_by', 'updated_by']
 
     def get_average_rating(self, obj):
         reviews = obj.reviews.all()

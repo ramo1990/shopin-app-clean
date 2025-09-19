@@ -40,10 +40,10 @@ class CreateCheckoutSessionView(APIView):
         # 3. URLs de redirection
         success_url = f'{settings.FRONTEND_URL}/confirmation/{order.id}'
         cancel_url = f'{settings.FRONTEND_URL}/cancel'
-        print("🔙 cancel_url:", cancel_url)
+        print("cancel_url:", cancel_url)
         # cancel_url = request.build_absolute_uri(f'/payment/{order.id}')
 
-        # ✅ METTRE À JOUR LE STATUT À 'pending'
+        # METTRE À JOUR LE STATUT À 'pending'
         order.status = 'pending'
         order.save()
 
@@ -142,6 +142,8 @@ def paiementpro_webhook(request):
 
     status_paiement = data.get("status")
     reference = data.get("reference")
+    session_id = data.get("sessionId")
+    channel = data.get("channel")     
 
     if not status_paiement or not reference:
         return JsonResponse({"error": "Champs manquants"}, status=400)
@@ -162,6 +164,11 @@ def paiementpro_webhook(request):
     # Paiement réussi
     order.payment_status = 'paid'
     order.status = 'paid'
+    if session_id:
+        order.paiementpro_session_id = session_id
+    if channel:
+        order.payment_channel = channel
+    order.reference_number = reference
     order.save()
     print(f"Commande {order.id} mise à jour avec succès via PaiementPro ({data.get('channel')})")
 
